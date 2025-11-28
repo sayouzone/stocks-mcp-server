@@ -1,6 +1,9 @@
-# Stocks Fundamental MCP Server
+# Stocks MCP Server
 
-주식 정보를 FnGuide, OpenDart, Yahoo Finance 등에서 종목 기본 정보 (펀더멘탈, fundamental)를 가져온다.
+Stocks Crawling and Caching MCP Server<br/>
+
+주식 정보를 FnGuide, OpenDart, Naver Finance, Yahoo Finance, SEC/EDGAR 등에서 <br/>
+종목 기본 정보 (펀더멘탈, fundamental)를 가져온다.
 
 모델 컨텍스트 프로토콜 (Model Context Protocol, MCP) 서버를 빌도하고 배포<br/>
 MCP 서버는 LLM에 외부 도구 및 서비스에 대한 액세스 권한을 제공<br/>
