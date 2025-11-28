@@ -1,0 +1,15 @@
+[project]
+name = "stocks-mcp"
+version = "0.1.0"
+description = "Deploying an Stocks MCP server on Cloud Run"
+requires-python = ">=3.13"
+dependencies = [
+    "fastmcp==2.12.4",
+    "pandas==2.3.3",
+    "yfinance==0.2.66",
+    "google-cloud-storage==3.5.0",
+    "google-cloud-bigquery==3.38.0",
+    "google-cloud-secret-manager==2.25.0",
+    "playwright==1.56.0",
+    "lxml==6.0.2",
+]
