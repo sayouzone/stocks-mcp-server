@@ -15,10 +15,20 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 - Gemini 2.5 Flash
 - Gemini 2.5 Flash Lite
 
+#### 참조 문서
 - [Cloud Run에 보안 MCP 서버를 배포하는 방법](https://codelabs.developers.google.com/codelabs/cloud-run/how-to-deploy-a-secure-mcp-server-on-cloud-run?hl=ko)
 - [Gemini CLI: Custom slash commands](https://cloud.google.com/blog/topics/developers-practitioners/gemini-cli-custom-slash-commands?e=48754805)
 
-##
+## 배포 (Cloud Run)
+
+```bash
+MCP_SERVER_NAME=stocks-mcp-server
+export GOOGLE_CLOUD_PROJECT=sayouzone-ai
+```
+
+#### GCP 설정 (1회만)
+
+서비스 활성화
 
 ```bash
 gcloud services enable \
@@ -27,17 +37,19 @@ gcloud services enable \
   cloudbuild.googleapis.com
 ```
 
-```bash
-MCP_SERVER_NAME=stocks-mcp-server
-```
+서비스 계정 생성
 
 ```bash
 gcloud iam service-accounts create mcp-server-sa --display-name="MCP Server Service Account"
 ```
 
 ```bash
-export GOOGLE_CLOUD_PROJECT=sayouzone-ai
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+    --member=user:$(gcloud config get-value account) \
+    --role='roles/run.invoker'
 ```
+
+#### 배포
 
 ```bash
 gcloud run deploy $MCP_SERVER_NAME \
@@ -47,13 +59,6 @@ gcloud run deploy $MCP_SERVER_NAME \
     --source=. \
     --labels=dev-tutorial=stocks-mcp
 ```
-
-```bash
-gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
-    --member=user:$(gcloud config get-value account) \
-    --role='roles/run.invoker'
-```
-
 
 ```bash
 gcloud run deploy $MCP_SERVER_NAME \

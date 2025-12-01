@@ -26,7 +26,7 @@ import asyncio
 import sys
 from pathlib import Path
 from bs4 import BeautifulSoup
-from typing import Any
+from typing import Any, Dict, List, Tuple, Optional
 
 # 직접 실행 시를 위한 경로 설정
 if __name__ == "__main__":
@@ -40,24 +40,10 @@ QUARTER_PREFIX = "quarter="
 
 
 class FnGuideCrawler:
-    """FnGuide 데이터 크롤러 - 동적/정적 테이블 수집 + GCS 저장"""
-
-    # 정적 HTML에서 가져올 테이블 (원본 utils/fnguide.py)
-    STATIC_TABLE_MAP = [
-        ("market_conditions", 0),
-        ("earning_issue", 1),
-        ("holdings_status", 2),
-        ("governance", 3),
-        ("shareholders", 4),
-        ("bond_rating", 6),
-        ("analysis", 7),
-        ("industry_comparison", 8),
-        ("financialhighlight_annual", 11),
-        ("financialhighlight_netquarter", 12),
-    ]
+    """FnGuide 데이터 크롤러 - 메인(Snapshot) / 재무제표 테이블 수집 + GCS 저장"""
 
     # Playwright로 가져올 동적 테이블
-    DYNAMIC_TABLE_TITLES = ["포괄손익계산서", "재무상태표", "현금흐름표"]
+    finance_table_titles = ["포괄손익계산서", "재무상태표", "현금흐름표"]
 
     def __init__(self, stock: str = "005930", bucket_name: str = "sayouzone-ai-stocks"):
         """
@@ -68,9 +54,32 @@ class FnGuideCrawler:
             bucket_name: GCS 버킷 이름
         """
         self.stock = stock
-        self.static_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{stock}"
-        self.dynamic_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A{stock}&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701"
-        self._translator = _FnGuideTranslator()
+
+        #Snapshot(메인)
+        self.main_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{stock}"
+        #기업개요
+        self.company_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Corp.asp?pGB=1&gicode=A{stock}"
+        #재무제표
+        #self.finance_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A{stock}&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701"
+        self.finance_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A{stock}"
+        #재무비율
+        self.finance_ratio_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_FinanceRatio.asp?pGB=1&gicode=A{stock}"
+        #투자지표
+        self.invest_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Invest.asp?pGB=1&gicode=A{stock}"
+        #컨센서스
+        self.consensus_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Consensus.asp?pGB=1&gicode=A{stock}"
+        #지분분석
+        self.share_analysis_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_shareanalysis.asp?pGB=1&gicode=A{stock}"
+        #업종분석
+        self.industry_analysis_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_ujanal.asp?pGB=1&gicode=A{stock}"
+        #경쟁사비교
+        self.comparison_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Comparison.asp?pGB=1&gicode=A{stock}"
+        #거래소공시
+        self.disclosure_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Disclosure.asp?pGB=1&gicode=A{stock}"
+        #금감원공시
+        self.dart_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Dart.asp?pGB=1&gicode=A{stock}"
+
+        self.fnguide_main = FnGuideMain()
 
         # GCS Manager 초기화 (지연 초기화 패턴)
         self.bucket_name = bucket_name
@@ -169,8 +178,8 @@ class FnGuideCrawler:
         """
         if stock:
             self.stock = stock
-            self.static_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{stock}"
-            self.dynamic_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A{stock}&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701"
+            self.main_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{stock}"
+            self.finance_url = f"https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A{stock}"
 
         # GCS 폴더 구조 설정 (파티션 기반: year=YYYY/quarter=Q/)
         today = date.today()
@@ -223,14 +232,14 @@ class FnGuideCrawler:
         # 데이터 수집
         raw_data = {}
 
-        # 1. 정적 테이블 수집은 GCS에만 저장 (기존 호환성 유지)
-        static_data = self._get_static_tables()
-        raw_data.update(static_data)
+        # 1. Snapshot 정보 수집은 GCS에만 저장 (기존 호환성 유지)
+        snapshot_data = self._get_snapshot()
+        raw_data.update(snapshot_data)
 
-        # 2. 동적 테이블 수집 (Playwright로 재무제표 3종)
-        dynamic_data = self._get_dynamic_tables()
-        #dynamic_data = await self._get_dynamic_tables_by_playwright()
-        raw_data.update(dynamic_data)
+        # 2. 재무제표 수집 (Playwright로 재무제표 3종)
+        finance_data = self._get_finance()
+        #finance_data = await self._get_finance_by_playwright()
+        raw_data.update(finance_data)
 
         # 3. GCS 업로드용 CSV 페이로드 생성
         csv_payloads: dict[str, str] = {}
@@ -269,17 +278,17 @@ class FnGuideCrawler:
         }
 
         # 디버깅: 수집된 동적 데이터 키 확인
-        print(f"[DEBUG] 수집된 동적 데이터 키: {list(dynamic_data.keys())}")
-        for key, value in dynamic_data.items():
+        print(f"[DEBUG] 수집된 동적 데이터 키: {list(finance_data.keys())}")
+        for key, value in finance_data.items():
             if isinstance(value, list):
                 print(f"[DEBUG] {key}: {len(value)}개 레코드")
             else:
                 print(f"[DEBUG] {key}: {type(value)}")
 
         # 재무상태표 (포괄손익계산서 → income_statement)
-        if "포괄손익계산서" in dynamic_data and dynamic_data["포괄손익계산서"]:
+        if "포괄손익계산서" in finance_data and finance_data["포괄손익계산서"]:
             result["income_statement"] = json.dumps(
-                dynamic_data["포괄손익계산서"],
+                finance_data["포괄손익계산서"],
                 ensure_ascii=False
             )
             print(f"[DEBUG] income_statement 변환 완료: {len(result['income_statement'])} bytes")
@@ -287,9 +296,9 @@ class FnGuideCrawler:
             print(f"[DEBUG] 포괄손익계산서 데이터 없음")
 
         # 재무상태표
-        if "재무상태표" in dynamic_data and dynamic_data["재무상태표"]:
+        if "재무상태표" in finance_data and finance_data["재무상태표"]:
             result["balance_sheet"] = json.dumps(
-                dynamic_data["재무상태표"],
+                finance_data["재무상태표"],
                 ensure_ascii=False
             )
             print(f"[DEBUG] balance_sheet 변환 완료: {len(result['balance_sheet'])} bytes")
@@ -297,9 +306,9 @@ class FnGuideCrawler:
             print(f"[DEBUG] 재무상태표 데이터 없음")
 
         # 현금흐름표
-        if "현금흐름표" in dynamic_data and dynamic_data["현금흐름표"]:
+        if "현금흐름표" in finance_data and finance_data["현금흐름표"]:
             result["cash_flow"] = json.dumps(
-                dynamic_data["현금흐름표"],
+                finance_data["현금흐름표"],
                 ensure_ascii=False
             )
             print(f"[DEBUG] cash_flow 변환 완료: {len(result['cash_flow'])} bytes")
@@ -382,9 +391,9 @@ class FnGuideCrawler:
             overwrite=overwrite,
         )
 
-    def _get_static_tables(self) -> dict[str, list[dict]]:
+    def _get_snapshot(self) -> dict[str, list[dict]]:
         """
-        정적 HTML 테이블 수집
+        기업 메인(Snapshot) 정보 수집
 
         requests로 HTML을 가져온 후 pandas.read_html()로 파싱하여
         시장 상황, 지배구조, 주주 현황 등의 정적 데이터를 수집
@@ -392,30 +401,18 @@ class FnGuideCrawler:
         Returns:
             dict[str, list[dict]]: 테이블명을 키로 하는 레코드 딕셔너리
         """
-        response = requests.get(self.static_url)
+        response = requests.get(self.main_url)
         response.raise_for_status()
         tables = pd.read_html(StringIO(response.text))
 
-        datasets = {}
-        for name, index in self.STATIC_TABLE_MAP:
-            if index < len(tables):
-                frame = tables[index]
-                # 한글 컬럼명을 영문으로 번역
-                frame = self._translator.translate_dataframe(
-                    frame,
-                    stock_code=self.stock,
-                )
-                datasets[name] = frame.to_dict(orient="records")
-            else:
-                print(f"경고: '{name}'에 해당하는 테이블(index {index})을 찾지 못해 빈 데이터로 저장합니다.")
-                datasets[name] = []
+        datasets = self.fnguide_main.parse(tables, stock=self.stock)
 
         return datasets
 
 
-    def _get_dynamic_tables(self) -> dict[str, list[dict]]:
+    def _get_finance(self) -> dict[str, list[dict]]:
         """
-        동적 테이블 수집 (requests + BeautifulSoup 사용)
+        재무제표 테이블 수집 (requests + BeautifulSoup 사용)
 
         재무제표 3종(포괄손익계산서, 재무상태표, 현금흐름표)을
         requests와 BeautifulSoup으로 크롤링하여 멀티인덱스 DataFrame으로 구조화
@@ -426,15 +423,15 @@ class FnGuideCrawler:
         result_dict = {}
 
         # requests로 페이지 가져오기
-        print(f"페이지 요청 중: {self.dynamic_url}")
-        response = requests.get(self.dynamic_url)
+        print(f"페이지 요청 중: {self.finance_url}")
+        response = requests.get(self.finance_url)
         response.raise_for_status()
 
         # BeautifulSoup으로 파싱
         soup = BeautifulSoup(response.text, "html.parser")
 
         # 모든 테이블 데이터 수집
-        for title in self.DYNAMIC_TABLE_TITLES:
+        for title in self.finance_table_titles:
             try:
                 print(f"\n{title} 데이터 수집 중...")
 
@@ -602,7 +599,7 @@ class FnGuideCrawler:
         return result_dict
     
 
-    async def _get_dynamic_tables_by_playwright(self) -> dict[str, list[dict]]:
+    async def _get_finance_by_playwright(self) -> dict[str, list[dict]]:
         """
         동적 테이블 수집 (Async Playwright 사용)
 
@@ -633,7 +630,7 @@ class FnGuideCrawler:
             page = await browser.new_page()
             # 타임아웃을 60초로 증가 (기본값: 30초)
             page.set_default_timeout(60000)
-            await page.goto(self.dynamic_url, wait_until="networkidle", timeout=60000)
+            await page.goto(self.finance_url, wait_until="networkidle", timeout=60000)
 
             # 접힌 테이블을 모두 펼치기 위해 아코디언 버튼 자동 클릭
             button_selector = ".btn_acdopen"
@@ -668,7 +665,7 @@ class FnGuideCrawler:
                     break
 
             # 모든 테이블 데이터 수집
-            for title in self.DYNAMIC_TABLE_TITLES:
+            for title in self.finance_table_titles:
                 try:
                     print(f"\n{title} 데이터 수집 중...")
                     table_locator = page.locator("table:visible").filter(has_text=title)
@@ -854,7 +851,7 @@ class FnGuideCrawler:
         cached_data: dict[str, list[dict]] = {}
 
         # 정적 + 동적 테이블 모두 확인
-        all_table_names = [name for name, _ in self.STATIC_TABLE_MAP] + self.DYNAMIC_TABLE_TITLES
+        all_table_names = [name for name, _ in FnGuideMain.main_table_selectors] + self.finance_table_titles
 
         for name in all_table_names:
             new_blob = f"{folder_name}{file_base}_{name}.csv"
@@ -1152,13 +1149,27 @@ class FnGuideCrawler:
         return folder_name.replace(QUARTER_PREFIX, "quater=")
 
 
-class _FnGuideTranslator:
+class FnGuideMain:
     """
     FnGuide 한글 컬럼명을 영문으로 번역하는 헬퍼 클래스
 
     테이블의 한글 헤더를 미리 정의된 영문 이름으로 변환하여
     데이터 분석 시 일관성 있는 컬럼명 사용 가능
     """
+
+    # Snapshot HTML에서 가져올 테이블 (원본 utils/fnguide.py)
+    _main_table_selectors = [
+        ("market_conditions", 0),
+        ("earning_issue", 1),
+        ("holdings_status", 2),
+        ("governance", 3),
+        ("shareholders", 4),
+        ("bond_rating", 6),
+        ("analysis", 7),
+        ("industry_comparison", 8),
+        ("financialhighlight_annual", 11),
+        ("financialhighlight_netquarter", 12),
+    ]
 
     # 한글 → 영문 컬럼명 매핑 딕셔너리
     _COLUMN_MAP = {
@@ -1188,7 +1199,52 @@ class _FnGuideTranslator:
         "IFRS(별도)": "ifrs_individual",
     }
 
-    def translate_dataframe(
+    @property
+    @staticmethod
+    def main_table_selectors(self) -> List[Tuple[str, int]]:
+        """
+        Snapshot HTML에서 가져올 테이블 선택자
+
+        Returns:
+            List[Tuple[str, int]]: (테이블명, 인덱스) 튜플 리스트
+        """
+        return FnGuideMain._main_table_selectors
+
+    def parse(
+        self,
+        frames: List[pd.DataFrame],
+        *,
+        stock: str | None = None,
+    ) -> Dict:
+        """
+        기업 정보 | Snapshot 정보 추출 후 주요 키를 영어로 변환
+
+        Args:
+            frames (List[pd.DataFrame]): 기업정보 Frames
+            stock: 종목 코드 (회사명을 "company"로 치환하기 위해 사용)
+
+        Returns:
+            Dict: 컬럼명이 번역된 DataFrame
+        """
+        
+        datasets = {}
+        for name, index in FnGuideMain.main_table_selectors:
+            if index < len(frames):
+                frame = frames[index]
+                # 한글 컬럼명을 영문으로 번역
+                frame = self._translate(
+                    frame,
+                    stock=stock,
+                )
+                datasets[name] = frame.to_dict(orient="records")
+            else:
+                #logger.error(f"경고: '{name}'에 해당하는 테이블(index {index})을 찾지 못해 빈 데이터로 저장합니다.")
+                print(f"경고: '{name}'에 해당하는 테이블(index {index})을 찾지 못해 빈 데이터로 저장합니다.")
+                datasets[name] = []
+
+        return datasets
+    
+    def _translate(
         self,
         frame: pd.DataFrame,
         *,
