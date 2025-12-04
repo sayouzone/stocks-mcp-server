@@ -1,0 +1,44 @@
+{
+    "1018724": {
+        "Company Name": "AMAZON COM INC",
+        "SIC": "5961",
+        "State location": "WA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "1045810": {
+        "Company Name": "NVIDIA CORP",
+        "SIC": "3674",
+        "State location": "CA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "0125"
+    },
+    "1318605": {
+        "Company Name": "Tesla, Inc.",
+        "SIC": "3711",
+        "State location": "TX",
+        "State of Inc": "TX",
+        "Fiscal Year End": "1231"
+    },
+    "1652044": {
+        "Company Name": "Alphabet Inc.",
+        "SIC": "7370",
+        "State location": "CA",
+        "State of Inc": "DE",
+        "Fiscal Year End": "1231"
+    },
+    "320193": {
+        "Company Name": "Apple Inc.",
+        "SIC": "3571",
+        "State location": "CA",
+        "State of Inc": "CA",
+        "Fiscal Year End": "0927"
+    },
+    "789019": {
+        "Company Name": "MICROSOFT CORP",
+        "SIC": "7372",
+        "State location": "WA",
+        "State of Inc": "WA",
+        "Fiscal Year End": "0630"
+    }
+}
