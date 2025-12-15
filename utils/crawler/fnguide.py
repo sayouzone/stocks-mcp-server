@@ -42,7 +42,7 @@ QUARTER_PREFIX = "quarter="
 class FnGuideCrawler:
     """FnGuide 데이터 크롤러 - 메인(Snapshot) / 재무제표 테이블 수집 + GCS 저장"""
 
-    # Playwright로 가져올 동적 테이블
+    # 재무제표 테이블
     finance_table_titles = ["포괄손익계산서", "재무상태표", "현금흐름표"]
 
     def __init__(self, stock: str = "005930", bucket_name: str = "sayouzone-ai-stocks"):
@@ -1199,17 +1199,6 @@ class FnGuideMain:
         "IFRS(별도)": "ifrs_individual",
     }
 
-    @property
-    @staticmethod
-    def main_table_selectors(self) -> List[Tuple[str, int]]:
-        """
-        Snapshot HTML에서 가져올 테이블 선택자
-
-        Returns:
-            List[Tuple[str, int]]: (테이블명, 인덱스) 튜플 리스트
-        """
-        return FnGuideMain._main_table_selectors
-
     def parse(
         self,
         frames: List[pd.DataFrame],
@@ -1326,6 +1315,17 @@ class FnGuideMain:
 
         # 매핑 딕셔너리에서 찾기 (없으면 원본 그대로)
         return self._COLUMN_MAP.get(normalized, normalized)
+
+    @property
+    @staticmethod
+    def main_table_selectors(self) -> List[Tuple[str, int]]:
+        """
+        Snapshot HTML에서 가져올 테이블 선택자
+
+        Returns:
+            List[Tuple[str, int]]: (테이블명, 인덱스) 튜플 리스트
+        """
+        return FnGuideMain._main_table_selectors
 
     @staticmethod
     def _normalize(value: str) -> str:
