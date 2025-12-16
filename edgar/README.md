@@ -3,7 +3,7 @@
 패키지 구조
 
 ```
-edgar_crawler/
+edgar/
 ├── __init__.py          # 공개 API 정의
 ├── client.py            # SEC EDGAR HTTP 클라이언트
 ├── models.py            # 데이터 클래스 (DTO)
@@ -28,3 +28,11 @@ edgar_crawler/
 | 유틸리티 | 공통 함수/상수를 `utils.py`로 추출 |
 | HTTP 클라이언트 | API 호출 로직을 `EDGARClient`로 분리 |
 | 레거시 호환 | 기존 메서드명 유지 (하위 호환성) |
+
+
+```python
+crawler = EDGARCrawler(user_agent="Sayouzone sjkim@sayouzone.com")
+cik = crawler.fetch_cik_by_ticker("AAPL")
+filings = crawler.fetch_filings(cik, doc_type="10-K", count=1)
+data = crawler.extract_10k(cik, filings[0].document_url, filings[0].accession_number)
+```

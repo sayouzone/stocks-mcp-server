@@ -2,6 +2,7 @@
 SEC EDGAR Crawler - 통합 인터페이스
 """
 
+import re
 from typing import Optional
 
 from .client import EDGARClient
@@ -35,8 +36,8 @@ class EDGARCrawler:
     Example:
         >>> crawler = EDGARCrawler(user_agent="Sayouzone sjkim@sayouzone.com")
         >>> cik = crawler.fetch_cik_by_ticker("AAPL")
-        >>> filings = crawler.fetch_10k_filings(cik, count=1)
-        >>> data = crawler.extract_10k(cik, filings[0].accession_number)
+        >>> filings = crawler.fetch_filings(cik, doc_type="10-K", count=1)
+        >>> data = crawler.extract_10k(cik, filings[0].document_url, filings[0].accession_number)
     """
     
     def __init__(self, user_agent: str = "Sayouzone sjkim@sayouzone.com"):
@@ -60,6 +61,10 @@ class EDGARCrawler:
     def fetch_cik_by_ticker(self, ticker: str) -> Optional[str]:
         """티커 심볼로 CIK 번호 조회"""
         return self.client.fetch_cik_by_ticker(ticker)
+    
+    def fetch_cik_by_company(self, company: str, limit: int = 10, flags: int = re.IGNORECASE) -> list[dict]:
+        """정규표현식으로 회사명 검색"""
+        return self.client.fetch_cik_by_company(company, limit, flags)
     
     def search_filings(
         self,

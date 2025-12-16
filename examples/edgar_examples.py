@@ -232,6 +232,16 @@ def main(ticker: str):
     # SEC에서 요구하는 User-Agent 설정
     crawler = EDGARCrawler(user_agent="Sayouzone sjkim@sayouzone.com")
     
+    # 회사이름으로 CIK 검색
+    #company_name = "Microsoft"
+    #cik = crawler.fetch_cik_by_company(company_name)[0]["cik"]
+    
+    #if not cik:
+    #    print(f"Could not find CIK for {company_name}")
+    #    return
+    #print(f"\n{company_name} CIK: {cik}")
+    
+    # Ticker로 CIK 검색
     cik = crawler.fetch_cik_by_ticker(ticker)
     
     if not cik:

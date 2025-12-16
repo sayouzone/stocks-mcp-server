@@ -8,24 +8,27 @@ Installation:
     pip install requests beautifulsoup4 lxml
 
 Quick Start:
-    >>> from edgar_crawler import EDGARCrawler
+    >>> from edgar import EDGARCrawler
     >>> 
     >>> crawler = EDGARCrawler(user_agent="MyCompany admin@email.com")
     >>> cik = crawler.fetch_cik_by_ticker("AAPL")
     >>> 
     >>> # 10-K 재무 데이터 추출
-    >>> filings = extcrawlerractor.fetch_10k_filings(cik, count=1)
-    >>> data = crawler.extract_10k(cik, filings[0].accession_number)
+    >>> filings = crawler.fetch_filings(cik, doc_type="10-K", count=1)
+    >>> filings = crawler.fetch_10k_filings(cik, count=1)
+    >>> data = crawler.extract_10k(cik, filings[0].document_url, filings[0].accession_number)
     >>> print(f"Revenue: ${data['financial_data'].revenue:,.0f}")
     >>> 
     >>> # 13F 포트폴리오 추출
+    >>> filings = crawler.fetch_filings("0001067983", doc_type="13F", count=1)
     >>> filings = crawler.fetch_13f_filings("0001067983", count=1)  # Berkshire
-    >>> portfolio = crawler.extract_13f("0001067983", filings[0].accession_number)
+    >>> portfolio = crawler.extract_13f("0001067983", filings[0].document_url, filings[0].accession_number)
     >>> print(f"Top Holding: {portfolio.top_holdings[0]['issuer']}")
     >>> 
     >>> # DEF 14A 임원 보상
+    >>> filings = crawler.fetch_filings(cik, doc_type="DEF 14A", count=1)
     >>> filings = crawler.fetch_def14a_filings(cik, count=1)
-    >>> proxy = crawler.extract_def14a(cik, filings[0].accession_number)
+    >>> proxy = crawler.extract_def14a(cik, filings[0].document_url, filings[0].accession_number)
     >>> for exec in proxy.executive_compensation:
     ...     print(f"{exec.name}: ${exec.total:,.0f}")
 

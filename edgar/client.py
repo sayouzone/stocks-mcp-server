@@ -5,6 +5,7 @@ SEC EDGAR API 클라이언트
 import time
 import json
 import pandas as pd
+import re
 import requests
 from bs4 import BeautifulSoup
 from typing import Optional
@@ -27,6 +28,7 @@ class EDGARClient:
             "Accept-Encoding": "gzip, deflate",
         })
         self._ticker_to_cik: Optional[dict] = None
+        self._company_data: Optional[list] = None
         self._rate_limit_delay = 0.1  # SEC 요청 제한 준수
     
     def _rate_limit(self):
@@ -45,11 +47,63 @@ class EDGARClient:
         if self._ticker_to_cik is None:
             resp = self._get(COMPANY_TICKERS_URL)
             data = resp.json()
+            #print('Companies:', data)
             self._ticker_to_cik = {
                 v["ticker"]: str(v["cik_str"]).zfill(10)
                 for v in data.values()
             }
         return self._ticker_to_cik.get(ticker.upper())
+    
+    def fetch_cik_by_company(self, company: str, limit: int = 10, flags: int = re.IGNORECASE) -> list[dict]:
+        """
+        정규표현식으로 회사명 검색
+        
+        Args:
+            pattern: 정규표현식 패턴
+            limit: 최대 결과 수
+            flags: 정규표현식 플래그 (기본: 대소문자 무시)
+            
+        Returns:
+            [{"cik": "0000320193", "ticker": "AAPL", "title": "Apple Inc."}, ...]
+            
+        Examples:
+            # "Apple"로 시작하는 회사
+            search_company_by_regex(r"^Apple")
+            
+            # "Tech" 또는 "Technology" 포함
+            search_company_by_regex(r"Tech(nology)?")
+            
+            # "Inc." 또는 "Corp."로 끝나는 회사
+            search_company_by_regex(r"(Inc\.|Corp\.)$")
+            
+            # 정확히 "Apple Inc." 매칭
+            search_company_by_regex(r"^Apple Inc\.$")
+        """
+        if self._company_data is None:
+            resp = self._get(COMPANY_TICKERS_URL)
+            data = resp.json()
+            #print('Companies:', data)
+            self._company_data = list(data.values())
+
+        try:
+            regex = re.compile(company, flags)
+        except re.error as e:
+            print(f"Invalid regex pattern: {e}")
+            return []
+        
+        results = []
+        for item in self._company_data:
+            title = item.get("title", "")
+            if regex.search(title):
+                results.append({
+                    "cik": str(item["cik_str"]).zfill(10),
+                    "ticker": item.get("ticker", ""),
+                    "title": title
+                })
+                if len(results) >= limit:
+                    break
+        
+        return results
     
     def fetch_company_filings(
         self, 
