@@ -206,14 +206,23 @@ def demo_def14a(crawler: OpenDartCrawler, cik: str, ticker: str):
             print(f"  ✓ {item}")
 
 def demo_corp_code(crawler: OpenDartCrawler, code: str):
-    # 회사명 또는 종목코드로 DART의 기업코드을 조회
+    """DART의 기업코드을 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"회사명 또는 종목코드로 DART의 기업코드을 조회 - {code}")
+    print('='*60)
+
     #corp_code = crawler.fetch_corp_code("삼성전자")
     #print(corp_code)
     corp_code = crawler.fetch_corp_code(code)
-    #print(corp_code)
+
+    print(f"기업코드: {corp_code}")
 
 def demo_base_documents(crawler: OpenDartCrawler, code: str):
-    """기업의 기본 공시 문서 조회"""
+    """기업의 기본 공시 문서 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"회사명 또는 종목코드로 DART의 기업코드을 조회 - {code}")
+    print('='*60)
+
     corp_code = crawler.fetch_corp_code(code)
     data = crawler.company(corp_code) # 삼성전자, 005930, 00126380
     #ata = crawler.company(code) # 조회 안됨
@@ -227,21 +236,220 @@ def demo_base_documents(crawler: OpenDartCrawler, code: str):
 
 def demo_finance(crawler: OpenDartCrawler, corp_code: str):
     """정기보고서 재무정보 데모"""
-    # 올해 (2025년) 정기보고서 재무정보 조회
-    current_year = str(datetime.now().year)
-    last_year = "2024"
+    print(f"\n{'='*60}")
+    print(f"정기보고서 재무정보 조회 - {code}")
+    print('='*60)
+
+    rcept_no = None
+
+    # 지난해 (2024년) 정기보고서 재무정보 조회
+    now = datetime.now()
+    last_year = str(now.year - 1)
+
+    corp_name = crawler.fetch_corp_name(corp_code)
 
     api_type = "단일회사 주요계정"
-    #api_type = "다중회사 주요계정"
-    #api_type = "단일회사 전체 재무제표"
-    #api_type = "XBRL택사노미재무제표양식"
-    #api_type = "단일회사 주요 재무지표"
-    #api_type = "다중회사 주요 재무지표"
     data = crawler.finance(corp_code, last_year, api_type=api_type)
-    print(data)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        print(f"\n{api_type} {last_year}년 ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        rcept_no = df.get("rcept_no")
+        print(df)
+
+    api_type = "다중회사 주요계정"
+    data = crawler.finance(corp_code, last_year, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        print(f"\n{api_type} {last_year}년 ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        rcept_no = df.get("rcept_no")
+        print(df)
+
+    api_type = "단일회사 전체 재무제표"
+    data = crawler.finance(corp_code, last_year, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        print(f"\n{api_type} {last_year}년 ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        rcept_no = df.get("rcept_no")
+        print(df)
+
+    #api_type = "XBRL택사노미재무제표양식"
+    api_type = "단일회사 주요 재무지표"
+    data = crawler.finance(corp_code, last_year, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        print(f"\n{api_type} {last_year}년 ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    api_type = "다중회사 주요 재무지표"
+    data = crawler.finance(corp_code, last_year, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        print(f"\n{api_type} {last_year}년 ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    # 올해 (2025년) 정기보고서 재무정보 조회
+    current_year = str(now.year)
+    quarter = (now.month - 1) // 3
+
+    api_type = "단일회사 주요계정"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        print(f"\n{api_type} {current_year}년 {quarter}분기 ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        rcept_no = df.get("rcept_no")
+        print(df)
+
+    api_type = "다중회사 주요계정"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        print(f"\n{api_type} {current_year}년 {quarter}분기 ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        rcept_no = df.get("rcept_no")
+        print(df)
+
+    api_type = "단일회사 전체 재무제표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        print(f"\n{api_type} {current_year}년 {quarter}분기 ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        rcept_no = df.get("rcept_no")
+        print(df)
+    
+    # 수익성지표 : M210000 안정성지표 : M220000 성장성지표 : M230000 활동성지표 : M240000
+    indicator_code = "M210000"
+
+    #api_type = "XBRL택사노미재무제표양식"
+    api_type = "단일회사 주요 재무지표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        idx_cl_nm = list[0].get("idx_cl_nm")
+        print(f"\n{api_type} {current_year}년 {quarter}분기 {idx_cl_nm} ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    api_type = "다중회사 주요 재무지표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        idx_cl_nm = list[0].get("idx_cl_nm")
+        print(f"\n{api_type} {current_year}년 {quarter}분기 {idx_cl_nm} ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    indicator_code = "M220000"
+
+    #api_type = "XBRL택사노미재무제표양식"
+    api_type = "단일회사 주요 재무지표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type, indicator_code=indicator_code)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        idx_cl_nm = list[0].get("idx_cl_nm")
+        print(f"\n{api_type} {current_year}년 {quarter}분기 {idx_cl_nm} ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    api_type = "다중회사 주요 재무지표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type, indicator_code=indicator_code)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        idx_cl_nm = list[0].get("idx_cl_nm")
+        print(f"\n{api_type} {current_year}년 {quarter}분기 {idx_cl_nm} ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    indicator_code = "M230000"
+
+    #api_type = "XBRL택사노미재무제표양식"
+    api_type = "단일회사 주요 재무지표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type, indicator_code=indicator_code)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        idx_cl_nm = list[0].get("idx_cl_nm")
+        print(f"\n{api_type} {current_year}년 {quarter}분기 {idx_cl_nm} ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    api_type = "다중회사 주요 재무지표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type, indicator_code=indicator_code)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        idx_cl_nm = list[0].get("idx_cl_nm")
+        print(f"\n{api_type} {current_year}년 {quarter}분기 {idx_cl_nm} ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    indicator_code = "M240000"
+
+    #api_type = "XBRL택사노미재무제표양식"
+    api_type = "단일회사 주요 재무지표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type, indicator_code=indicator_code)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        idx_cl_nm = list[0].get("idx_cl_nm")
+        print(f"\n{api_type} {current_year}년 {quarter}분기 {idx_cl_nm} ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    api_type = "다중회사 주요 재무지표"
+    data = crawler.finance(corp_code, current_year, quarter=quarter, api_type=api_type, indicator_code=indicator_code)
+    #print(data)
+    status = data.get("status", "")
+    list = data.get("list", [])
+    if status == "000" and len(list) > 0:
+        idx_cl_nm = list[0].get("idx_cl_nm")
+        print(f"\n{api_type} {current_year}년 {quarter}분기 {idx_cl_nm} ({corp_name}, {corp_code})")
+        df = pd.DataFrame(list)
+        print(df)
+
+    # 올해 마지막 재무제표 접수번호
+    print(f"\n{current_year}년 {quarter}분기 접수번호: {rcept_no.iloc[0]}")
+    
+    return rcept_no.iloc[0]
 
 def demo_download_xbrl(crawler: OpenDartCrawler, rcept_no: str = None):
     # OpenDart 정기보고서 재무정보 - 재무제표 원본파일(XBRL). 다운로드
+    print(f"\n{'='*60}")
+    print(f"회사명 또는 종목코드로 DART의 기업코드을 조회 - {code}")
+    print('='*60)
     #rcept_no = "20190401004781"
     rcept_no = "20250814003156" if not rcept_no else rcept_no
     save_path = crawler.finance_file(rcept_no, quarter = 4)
@@ -258,42 +466,24 @@ def main(code: str):
     # SEC에서 요구하는 User-Agent 설정
     crawler = OpenDartCrawler(api_key=DART_API_KEY)
 
+    # 회사이름으로 corp_code 검색
+    #company_name = "삼성전자"
+    #corp_code = crawler.fetch_corp_code(company_name)
     corp_code = crawler.fetch_corp_code(code)
     if not corp_code:
         print(f"Could not find corp_code for {code}")
         return
 
+    print(f"\n{code} corp_code: {corp_code}")
+
+    # 각 파일링 타입 데모
     #demo_corp_code(crawler, code)
     #demo_base_documents(crawler, code)
-    #demo_finance(crawler, corp_code)
+    rcept_no = demo_finance(crawler, corp_code)
     # 00126380      삼성전자     005930        Y                  반기보고서 (2025.06)  20250814003156              삼성전자  20250814  
-    #demo_download_xbrl(crawler, rcept_no="20250814003156")
+    #rcept_no="20251114002447"
+    demo_download_xbrl(crawler, rcept_no=rcept_no)
     
-    # 회사이름으로 CIK 검색
-    #company_name = "Microsoft"
-    #cik = crawler.fetch_cik_by_company(company_name)[0]["cik"]
-    
-    #if not cik:
-    #    print(f"Could not find CIK for {company_name}")
-    #    return
-    #print(f"\n{company_name} CIK: {cik}")
-    
-    # Ticker로 CIK 검색
-    #cik = crawler.fetch_cik_by_ticker(ticker)
-    
-    #if not cik:
-    #    print(f"Could not find CIK for {ticker}")
-    #    return
-    
-    #print(f"\n{ticker} CIK: {cik}")
-    
-    # 각 파일링 타입 데모
-    #demo_10k(crawler, cik, ticker)
-    #demo_10q(crawler, cik, ticker)
-    #demo_8k(crawler, cik, ticker)
-    #demo_13f(crawler, cik, ticker)
-    #demo_def14a(crawler, cik, ticker)
-    #demo_peer_comparison(crawler)
     
     print("\n" + "="*60)
     print("Demo completed!")
@@ -301,6 +491,6 @@ def main(code: str):
 
 
 if __name__ == "__main__":
-    # Apple, Google, Microsoft, Meta, NVIDIA, Tesla 예시
+    # 삼성전자, 하이닉스, 네이버 예시
     code = "005930" # 삼성전자
     main(code)

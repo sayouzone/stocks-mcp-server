@@ -264,7 +264,9 @@ class DartAPIParser:
         print(f"\n총 {len(result['xml_data'])}개 XML 파일 파싱 완료")
         return result
 
-    def finance(self, corp_code: str, year: int, quarter: int = 4, api_type: str = "단일회사 전체 재무제표"):
+    def finance(self, 
+        corp_code: str, year: int, quarter: int = 4, 
+        api_type: str = "단일회사 전체 재무제표", indicator_code: str="M210000"):
         """
         OpenDart 정기보고서 재무정보
         corp_code으로만 조회가 가능, stock_code 및 기업명으로는 조회되지 않는다.
@@ -344,7 +346,7 @@ class DartAPIParser:
             params["sj_div"] = "BS1" # ※재무제표구분 참조
         elif api_type == "단일회사 주요 재무지표" or \
              api_type == "다중회사 주요 재무지표":
-            params["idx_cl_code"] = "M210000" # 수익성지표 : M210000 안정성지표 : M220000 성장성지표 : M230000 활동성지표 : M240000
+            params["idx_cl_code"] = indicator_code # 수익성지표 : M210000 안정성지표 : M220000 성장성지표 : M230000 활동성지표 : M240000
 
         # 기능 선택 방식에 대해서 고민 중
         url = self.finance_urls.get(api_type, "")
@@ -426,18 +428,6 @@ class DartAPIParser:
         # ZIP 파일 압축해제 및 폴더에 저장
         self.__save_unzip(binary_data, save_path)
         return save_path
-    
-        """
-        result = {
-            'rcept_no': rcept_no,
-        }                
-
-        _result = self.__parse_unzip_xml(binary_data, save_path)
-        result = result | _result
-        
-        print(f"\n총 {len(result['xml_data'])}개 XML 파일 파싱 완료")
-        return result
-        """
 
     def _parse_xml(self, xml_content, filename=None):
         """

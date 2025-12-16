@@ -52,7 +52,7 @@ class OpenDartCrawler:
         with open("corpcode.json", "r", encoding="utf-8") as json_file:
             self._corp_data = json.load(json_file)
 
-    def fetch_corp_code(self, company: str, limit: int = 10, flags: int = re.IGNORECASE) -> list[dict]:
+    def fetch_corp_code(self, company: str, limit: int = 10, flags: int = re.IGNORECASE) -> str:
         """
         """
         if self._corp_data is None:
@@ -110,7 +110,60 @@ class OpenDartCrawler:
             return results[0].get("corp_code")
 
         return None
-    
+
+    def fetch_corp_name(self, company: str, limit: int = 10) -> str:
+        """
+        """
+        if self._corp_data is None:
+            result = self._api_parser.corp_code()
+            with open("corpcode.json", "w", encoding="utf-8") as file:
+                json.dump(result.get("xml_data")[0].get("list"), file, ensure_ascii=False, indent=4)
+            self._corp_data = result.get("xml_data")[0].get("list")
+        
+        corp_name = self._fetch_corp_name_by_corp_code(company)
+        if corp_name:
+            return corp_name
+
+        corp_name = self._fetch_corp_name_by_stock(company) 
+
+        return corp_name
+
+    def _fetch_corp_name_by_corp_code(self, corp_code: str, limit: int = 10) -> str:        
+        results = []
+        for item in self._corp_data:
+            code = item.get("corp_code", "")
+            if code != "" and corp_code == code:
+                results.append({
+                    "stock_code": item.get("stock_code", ""),
+                    "corp_code": code,
+                    "corp_name": item.get("corp_name", "")
+                })
+                if len(results) >= limit:
+                    break
+        
+        if len(results) > 0:
+            return results[0].get("corp_name")
+
+        return None
+
+    def _fetch_corp_name_by_stock(self, stock: str, limit: int = 10) -> str:        
+        results = []
+        for item in self._corp_data:
+            stock_code = item.get("stock_code", "")
+            if stock_code != "" and stock_code == stock:
+                results.append({
+                    "stock_code": stock_code,
+                    "corp_code": item.get("corp_code", ""),
+                    "corp_name": item.get("corp_name", "")
+                })
+                if len(results) >= limit:
+                    break
+        
+        if len(results) > 0:
+            return results[0].get("corp_name")
+
+        return None
+        
     def fetch(
         self,
         code: str | None = None,
@@ -152,7 +205,7 @@ class OpenDartCrawler:
         """
         return self._api_parser.company(code)
         
-    def finance(self, code: str, year: str, quarter: int = 4, api_type: str = "단일회사 전체 재무제표"):
+    def finance(self, code: str, year: str, quarter: int = 4, api_type: str = "단일회사 전체 재무제표", indicator_code: str="M210000"):
         """
         OpenDart 정기보고서 재무정보
         단일회사 주요계정
@@ -162,7 +215,7 @@ class OpenDartCrawler:
         단일회사 주요 재무지표
         다중회사 주요 재무지표
         """
-        return self._api_parser.finance(code, year, quarter, api_type=api_type)
+        return self._api_parser.finance(code, year, quarter, api_type=api_type, indicator_code=indicator_code)
 
     def finance_file(self, rcept_no, quarter: int = 4, save_path: str | None = None):
         """
