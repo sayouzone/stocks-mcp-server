@@ -9,260 +9,19 @@ from ..client import OpenDartClient
 
 from ..utils import (
     decode_euc_kr,
-    API_URL,
-    MAIN_URL,
-    PDF_URL,
-    PDF_MAIN_URL,
-    VIEWER_URL
+    finance_urls,
+    quarters
 )
 
-class DartAPIParser:
+class DartFinanceParser:
     """
     OpenDART API 파싱 클래스
     
-    공시정보: Public Disclosure, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS001
-    정기보고서 주요정보: Key Information in Periodic Reports, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS002
     정기보고서 재무정보: Financial Information in Periodic Reports, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS003
-    지분공시 종합정보: Comprehensive Share Ownership Information, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS004
-    주요사항보고서 주요정보: Key Information in Reports on Material Facts, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS005
-    증권신고서 주요정보: Key Information in Registration Statements, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS006
     """
-
-    list_url = f"{API_URL}/list.json"
-    company_url = f"{API_URL}/company.json"
-    document_url = f"{API_URL}/document.xml"
-    corp_code_url = f"{API_URL}/corpCode.xml"   
-
-    finance_urls = {
-        "단일회사 주요계정": f"{API_URL}/fnlttSinglAcnt.json",
-        "다중회사 주요계정": f"{API_URL}/fnlttMultiAcnt.json",
-        "재무제표 원본파일(XBRL)": f"{API_URL}/fnlttXbrl.xml",
-        "단일회사 전체 재무제표": f"{API_URL}/fnlttSinglAcntAll.json",
-        "XBRL택사노미재무제표양식": f"{API_URL}/xbrlTaxonomy.json",
-        "단일회사 주요 재무지표": f"{API_URL}/fnlttSinglIndx.json",
-        "다중회사 주요 재무지표": f"{API_URL}/fnlttCmpnyIndx.json"
-    }
 
     def __init__(self, client: OpenDartClient):
         self.client = client
-
-    def list(self, code, start: str | None = None, end: str | None = None):
-        """
-        OpenDart 공시정보 - 공시검색 
-
-        Args:
-            code (str): 기업 고유번호 (주식 코드(stock_code) 및 DART 고유번호 모두 가능(corp_code))
-            start (str): 시작일 (YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD, YYYYMMDD)
-            end (end): 종료일 (YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD, YYYYMMDD)
-        Returns:
-            pd.DataFrame: 공시 목록
-        """
-        start = datetime.now().strftime("%Y%m%d") if not start else self._dateformat(start)
-        end = datetime.now().strftime("%Y%m%d") if not end else self._dateformat(end)
-        
-        params = {
-            "crtfc_key": self.client.api_key,
-            "corp_code": code,
-            "bgn_de": start,
-            "end_de": end,
-            "corp_cls": "Y",
-            "page_no": 1,
-            "page_count": 100
-        }
-
-        all_data = []  # 전체 데이터 저장
-        page = 1
-        
-        while True:
-            params['page_no'] = page
-            
-            response = self.client._get(self.list_url, params=params)
-            json_data = response.json()
-            
-            status = json_data.get("status")
-
-            # 에러 체크
-            if status != "000":
-                print(f"Error: {json_data.get('message')}")
-                break
-
-            # 데이터 추가
-            data_list = json_data.get("list", [])
-            all_data.extend(data_list)
-            
-            # 페이지 정보
-            page_no = json_data.get("page_no", 1)
-            total_page = json_data.get("total_page", 1)
-            total_count = json_data.get("total_count", 0)
-
-            print(f"페이지 {page}/{total_page} 완료 (총 {total_count}건)")
-
-            # 마지막 페이지면 종료
-            if page >= total_page:
-                break
-
-            page += 1
-
-        # DataFrame 변환
-        df = pd.DataFrame(all_data)
-        return df
-
-    def company(self, code):
-        """
-        OpenDart 공시정보 - 기업개황 (기업 정보 조회)
-        corp_code, stock_code으로 조회가 가능하지만 기업명으로는 조회되지 않는다.
-
-        Args:
-            code (str): 기업 고유번호  (주식 코드(stock_code) 및 DART 고유번호 모두 가능(corp_code))
-        Returns:
-            Dict: 기업개황
-        """
-        
-        params = {
-            "crtfc_key": self.client.api_key,
-            "corp_code": code
-        }
-
-        print(self.company_url, params)
-        response = self.client._get(self.company_url, params=params)
-        
-        json_data = response.json()
-            
-        status = json_data.get("status")
-
-        # 에러 체크
-        if status != "000":
-            print(f"Error: {json_data.get('message')}")
-            return {}
-
-        self.corp_code = json_data.get("corp_code")
-        self.corp_name = json_data.get("corp_name")
-        self.stock_code = json_data.get("stock_code")
-
-        return json_data
-
-    def document(self, rcept_no, save_path: str | None = None):
-        """
-        OpenDart 공시정보 - 공시서류원본파일
-        https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019003
-
-        Args:
-            rcept_no (str): 접수번호
-            save_path (str): 파일 저장 경로
-        Returns:
-            pd.DataFrame: 기업개황
-        """
-        
-        params = {
-            "crtfc_key": self.client.api_key,
-            "rcept_no": rcept_no
-        }
-
-        response = self.client._get(self.document_url, params=params)
-
-        response_headers = response.headers
-
-        if response.status_code != 200:
-            print(f"다운로드 실패: {response.status_code}")
-            return None
-
-        content_type = response_headers.get("Content-Type")
-        if "application/xml" in content_type:
-            text_data = response.text
-            print(text_data)
-            return None
-
-        # 바이너리 데이터 
-        binary_data = response.content
-
-        if save_path is None:
-            save_path = f"dart_{rcept_no}"
-            save_path = self.__save_zip_path(response_headers, save_path)
-        
-        # ZIP 파일 저장
-        #self.__save_zip(binary_data, save_path)
-        # ZIP 파일 압축해제 및 폴더에 저장
-        #self.__save_unzip(binary_data, save_path)
-        #return save_path
-
-        result = {
-            'rcept_no': rcept_no,
-        }
-
-        _result = self.__parse_unzip_xml(binary_data, save_path)
-        result = result | _result
-        
-        """
-        # ZIP 압축 해제 (메모리에서)
-        with zipfile.ZipFile(io.BytesIO(binary_data)) as zf:
-            file_list = zf.namelist()
-            print(f"압축 파일 내 {len(file_list)}개 파일:")
-            
-            for fname in file_list:
-                # 파일명 인코딩 수정
-                enc_name = decode_euc_kr(fname)
-                
-                print(f"  - {enc_name}")
-                result['files'].append(enc_name)
-                
-                # XML 파일만 파싱
-                if fname.endswith('.xml'):
-                    content = zf.read(fname)
-                    parsed = self._parse_xml(content, enc_name)
-                    result['xml_data'].append(parsed)
-        """
-        
-        print(f"\n총 {len(result['xml_data'])}개 XML 파일 파싱 완료")
-        return result
-
-    def corp_code(self, save_path: str | None = None):
-        """
-        OpenDart 공시정보 - 고유번호
-        https://opendart.fss.or.kr/guide/detail.do?apiGrpCd=DS001&apiId=2019018
-
-        Args:
-            save_path (str): 파일 저장 경로
-        Returns:
-            Dict: 기업 고유번호 목록
-        """
-        
-        params = {
-            "crtfc_key": self.client.api_key
-        }
-
-        print(self.corp_code_url, params)
-        response = self.client._get(self.corp_code_url, params=params)
-
-        response_headers = response.headers
-
-        if response.status_code != 200:
-            print(f"다운로드 실패: {response.status_code}")
-            return None
-
-        content_type = response_headers.get("Content-Type")
-        if "application/xml" in content_type:
-            text_data = response.text
-            print(text_data)
-            return None
-
-        # 바이너리 데이터 
-        binary_data = response.content
-
-        if save_path is None:
-            save_path = f"dart_corp_code"
-            save_path = self.__save_zip_path(response_headers, save_path)
-
-        # ZIP 파일 저장
-        #self.__save_zip(binary_data, save_path)
-        # ZIP 파일 압축해제 및 폴더에 저장
-        #self.__save_unzip(binary_data, save_path)
-        #return save_path
-
-        # ZIP 파일 압축해제 및 XML 파싱 
-        result = self.__parse_unzip_xml(binary_data, save_path)
-        
-        print(f"\n총 {len(result['xml_data'])}개 XML 파일 파싱 완료")
-        return result
 
     def finance(self, 
         corp_code: str, year: int, quarter: int = 4, 
@@ -323,13 +82,6 @@ class DartAPIParser:
             Dict: 기업개황
         """
 
-        quarters = {
-            "1": "11013", # 1분기보고서
-            "2": "11012", # 반기보고서
-            "3": "11014", # 3분기보고서
-            "4": "11011"  # 사업보고서
-        }
-
         #corp_code,bsns_year,stacnt_code,idx_cl_code
         report_code = quarters.get(str(quarter), "4") 
 
@@ -349,7 +101,7 @@ class DartAPIParser:
             params["idx_cl_code"] = indicator_code # 수익성지표 : M210000 안정성지표 : M220000 성장성지표 : M230000 활동성지표 : M240000
 
         # 기능 선택 방식에 대해서 고민 중
-        url = self.finance_urls.get(api_type, "")
+        url = finance_urls.get(api_type, "")
 
         print(f"URL: {url}, params: {params}")
         response = self.client._get(url, params=params)
@@ -385,14 +137,7 @@ class DartAPIParser:
             pd.DataFrame: 기업개황
         """
 
-        url = self.finance_urls.get("재무제표 원본파일(XBRL)", "")
-
-        quarters = {
-            "1": "11013", # 1분기보고서
-            "2": "11012", # 반기보고서
-            "3": "11014", # 3분기보고서
-            "4": "11011"  # 사업보고서
-        }
+        url = finance_urls.get("재무제표 원본파일(XBRL)", "")
         report_code = quarters.get(str(quarter), "4")
         
         params = {
@@ -613,8 +358,3 @@ class DartAPIParser:
                     result['xml_data'].append(parsed)
         
         return result
-
-    def _dateformat(self, date_str):
-        """다양한 날짜 형식을 YYYYMMDD로 변환"""
-        # 구분자(-, /, .) 제거
-        return re.sub(r'[-/.]', '', date_str)

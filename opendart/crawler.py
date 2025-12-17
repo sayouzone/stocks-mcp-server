@@ -12,9 +12,14 @@ from .models import DartConfig
 #from .utils import companydict
 
 from .parsers import (
-    DartAPIParser,
     DartDocumentParser,
     DartDocumentViewer,
+    DartDisclosureParser,
+    DartFinanceParser,
+    DartMaterialFactsParser,
+    DartOwnershipParser,
+    DartRegistrationParser,
+    DartReportsParser,
 )
 
 class OpenDartCrawler:
@@ -45,8 +50,13 @@ class OpenDartCrawler:
 
         # 파서 초기화
         self._document_parser = DartDocumentParser(self.client)
-        self._api_parser = DartAPIParser(self.client)
         self._document_viewer = DartDocumentViewer(self.client)
+        self._disclosure_parser = DartDisclosureParser(self.client)
+        self._finance_parser = DartFinanceParser(self.client)
+        self._material_facts_parser = DartMaterialFactsParser(self.client)
+        self._ownership_parser = DartOwnershipParser(self.client)
+        self._registration_parser = DartRegistrationParser(self.client)
+        self._reports_parser = DartReportsParser(self.client)
         self._corp_data : Optional[list] = None
 
         with open("corpcode.json", "r", encoding="utf-8") as json_file:
@@ -56,7 +66,7 @@ class OpenDartCrawler:
         """
         """
         if self._corp_data is None:
-            result = self._api_parser.corp_code()
+            result = self._disclosure_parser.corp_code()
             with open("corpcode.json", "w", encoding="utf-8") as file:
                 json.dump(result.get("xml_data")[0].get("list"), file, ensure_ascii=False, indent=4)
             self._corp_data = result.get("xml_data")[0].get("list")
@@ -68,6 +78,18 @@ class OpenDartCrawler:
         corp_code = self._fetch_corp_code_by_stock(company) 
 
         return corp_code
+
+    def reports(self, corp_code: str, year: str, quarter: int, api_no: int = -1, api_type: str = None):
+        return self._reports_parser.fetch(corp_code, year, quarter, api_no, api_type)
+
+    def ownership(self, corp_code: str, api_no: int = -1, api_type: str = None):
+        return self._ownership_parser.fetch(corp_code, api_no, api_type)
+
+    def material_facts(self, corp_code: str, start_date: str, end_date: str, api_no: int = -1, api_type: str = None):
+        return self._material_facts_parser.fetch(corp_code, start_date, end_date, api_no, api_type)
+
+    def registration(self, corp_code: str, start_date: str, end_date: str, api_no: int = -1, api_type: str = None):
+        return self._registration_parser.fetch(corp_code, start_date, end_date, api_no, api_type)
 
     def _fetch_corp_code_by_name(self, company: str, limit: int = 10, flags: int = re.IGNORECASE) -> str:
         try:
@@ -115,7 +137,7 @@ class OpenDartCrawler:
         """
         """
         if self._corp_data is None:
-            result = self._api_parser.corp_code()
+            result = self._disclosure_parser.corp_code()
             with open("corpcode.json", "w", encoding="utf-8") as file:
                 json.dump(result.get("xml_data")[0].get("list"), file, ensure_ascii=False, indent=4)
             self._corp_data = result.get("xml_data")[0].get("list")
@@ -203,7 +225,7 @@ class OpenDartCrawler:
         OpenDart 공시정보 - 기업개황 (기업 정보 조회)
         corp_code, stock_code으로 조회가 가능하지만 기업명으로는 조회되지 않는다.
         """
-        return self._api_parser.company(code)
+        return self._disclosure_parser.company(code)
         
     def finance(self, code: str, year: str, quarter: int = 4, api_type: str = "단일회사 전체 재무제표", indicator_code: str="M210000"):
         """
@@ -215,13 +237,13 @@ class OpenDartCrawler:
         단일회사 주요 재무지표
         다중회사 주요 재무지표
         """
-        return self._api_parser.finance(code, year, quarter, api_type=api_type, indicator_code=indicator_code)
+        return self._finance_parser.finance(code, year, quarter, api_type=api_type, indicator_code=indicator_code)
 
     def finance_file(self, rcept_no, quarter: int = 4, save_path: str | None = None):
         """
         OpenDart 정기보고서 재무정보 - 재무제표 원본파일(XBRL)
         """
-        return self._api_parser.finance_file(rcept_no, quarter, save_path=save_path)
+        return self._finance_parser.finance_file(rcept_no, quarter, save_path=save_path)
 
     def _fetch_list(
         self,
@@ -229,7 +251,7 @@ class OpenDartCrawler:
         start_date: str,
         end_date: str
     ) -> pd.DataFrame:
-        df = self._api_parser.list(code, start=start_date, end=end_date)
+        df = self._disclosure_parser.list(code, start=start_date, end=end_date)
         df["report_nm"] = df["report_nm"].str.strip()
 
         return df
