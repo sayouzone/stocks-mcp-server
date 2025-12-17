@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SEC EDGAR Crawler 사용 예시
+OpenDart Crawler 사용 예시
 """
 
 import os

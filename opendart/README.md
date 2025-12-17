@@ -1,4 +1,4 @@
-##
+## DART 오픈API
 
 패키지 구조
 
@@ -12,13 +12,15 @@ opendart/
 ├── examples.py          # 사용 예시
 └── parsers/
     ├── __init__.py
-    ├── disclosure.py      # 공시정보 API 파서
     ├── document.py        # 문서 API 파서
     ├── document_viewer.py # 문서 뷰어 API 파서
-    ├── api.py             # API 파서
-    └── finance.py         # 재무정보 API 파서
+    ├── disclosure.py      # 공시정보 API 파서
+    ├── finance.py         # 정기보고서 재무정보 API 파서
+    ├── material_facts.py  # 주요사항보고서 주요정보 API 파서
+    ├── ownership.py       # 지분공시 종합정보 API 파서
+    ├── registration.py    # 증권신고서 주요정보 API 파서
+    └── reports.py         # 정기보고서 주요정보 API 파서
 ```
-
 
 ```
 OpenDartCrawler
@@ -47,6 +49,13 @@ OpenDartCrawler
 ├── check_gcp (GCP에서 Caching 정보 확인)
 └── save_gcp (GCP에서 Caching 정보 저장)
 ```
+
+- 공시정보: Public Disclosure, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS001
+- 정기보고서 주요정보: Key Information in Periodic Reports, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS002
+- 정기보고서 재무정보: Financial Information in Periodic Reports, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS003
+- 지분공시 종합정보: Comprehensive Share Ownership Information, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS004
+- 주요사항보고서 주요정보: Key Information in Reports on Material Facts, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS005
+- 증권신고서 주요정보: Key Information in Registration Statements, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS006
 
 
 주요 개선 사항
