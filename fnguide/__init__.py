@@ -8,37 +8,42 @@ Installation:
     pip install requests beautifulsoup4 lxml
 
 Quick Start:
-    >>> from edgar_crawler import EDGARCrawler
+    >>> from fnguide import FnGuideCrawler
     >>> 
-    >>> crawler = EDGARCrawler(user_agent="MyCompany admin@email.com")
+    >>> crawler = FnGuideCrawler()
     >>> cik = crawler.fetch_cik_by_ticker("AAPL")
     >>> 
-    >>> # 10-K 재무 데이터 추출
-    >>> filings = extcrawlerractor.fetch_10k_filings(cik, count=1)
-    >>> data = crawler.extract_10k(cik, filings[0].accession_number)
-    >>> print(f"Revenue: ${data['financial_data'].revenue:,.0f}")
+    >>> # FnGuide 기업 정보 | Snapshot 조회
+    >>> data = crawler.main(code)
+    >>> list = data.get("list", [])
+    >>> print(pd.DataFrame(list))
     >>> 
-    >>> # 13F 포트폴리오 추출
-    >>> filings = crawler.fetch_13f_filings("0001067983", count=1)  # Berkshire
-    >>> portfolio = crawler.extract_13f("0001067983", filings[0].accession_number)
-    >>> print(f"Top Holding: {portfolio.top_holdings[0]['issuer']}")
+    >>> # FnGuide 기업 정보 | 재무제표 조회
+    >>> data = crawler.finance(code)
+    >>> list = data.get("list", [])
+    >>> print(pd.DataFrame(list))
     >>> 
-    >>> # DEF 14A 임원 보상
-    >>> filings = crawler.fetch_def14a_filings(cik, count=1)
-    >>> proxy = crawler.extract_def14a(cik, filings[0].accession_number)
-    >>> for exec in proxy.executive_compensation:
-    ...     print(f"{exec.name}: ${exec.total:,.0f}")
+    >>> # FnGuide 기업 정보 | 기업개요 조회
+    >>> data = crawler.finance(code)
+    >>> list = data.get("list", [])
+    >>> print(pd.DataFrame(list))
 
-Supported Filings:
-    - 10-K: Annual Report (재무제표, 리스크 팩터, MD&A)
-    - 10-Q: Quarterly Report (분기 재무제표)
-    - 8-K: Current Report (중요 이벤트 공시)
-    - 13F: Institutional Holdings (기관투자자 포트폴리오)
-    - DEF 14A: Proxy Statement (임원 보상, 이사회, 거버넌스)
+Supported Informations:
+    - FnGuide 기업 정보 | Snapshot
+    - FnGuide 기업 정보 | 재무제표
+    - FnGuide 기업 정보 | 기업개요
+    - FnGuide 기업 정보 | 경쟁사비교
+    - FnGuide 기업 정보 | 컨센서스
+    - FnGuide 기업 정보 | 금감원공시
+    - FnGuide 기업 정보 | 거래소공시
+    - FnGuide 기업 정보 | 재무비율
+    - FnGuide 기업 정보 | 재무제표
+    - FnGuide 기업 정보 | 업종분석
+    - FnGuide 기업 정보 | 투자지표
+    - FnGuide 기업 정보 | 지분분석
 
 Note:
-    SEC에서 User-Agent 헤더를 요구합니다. 
-    회사명과 이메일을 포함한 식별 가능한 User-Agent를 사용하세요.
+    FnGuide에서 User-Agent 헤더를 요구합니다. 
 """
 
 __version__ = "0.1.0"

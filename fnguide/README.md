@@ -12,14 +12,17 @@ fnguide/
 ├── examples.py          # 사용 예시
 └── parsers/
     ├── __init__.py
-    ├── document.py        # 문서 API 파서
-    ├── document_viewer.py # 문서 뷰어 API 파서
-    ├── disclosure.py      # 공시정보 API 파서
-    ├── finance.py         # 정기보고서 재무정보 API 파서
-    ├── material_facts.py  # 주요사항보고서 주요정보 API 파서
-    ├── ownership.py       # 지분공시 종합정보 API 파서
-    ├── registration.py    # 증권신고서 주요정보 API 파서
-    └── reports.py         # 정기보고서 주요정보 API 파서
+    ├── company.py            # FnGuide 기업개요 파서
+    ├── comparison.py         # FnGuide 경쟁사비교 파서
+    ├── consensus.py          # FnGuide 컨센서스 파서
+    ├── dart.py               # FnGuide 금감원공시 파서
+    ├── disclosure.py         # FnGuide 거래소공시 파서
+    ├── finance_ratio.py      # FnGuide 재무비율 파서
+    ├── finance.py            # FnGuide 재무제표 파서
+    ├── industry_analysis.py  # FnGuide 업종분석 파서
+    ├── invest.py             # FnGuide 투자지표 파서
+    ├── main.py               # FnGuide 메인(Snapshot) 파서
+    └── share_analysis.py     # FnGuide 지분분석 파서
 ```
 
 ```
@@ -42,21 +45,21 @@ FnGuideCrawler
 
 ## FnGuide Url 목록
 
-- [메인](https://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{stock})
-- [기업개요](https://comp.fnguide.com/SVO2/ASP/SVD_Corp.asp?pGB=1&gicode=A{stock})
-- [재무제표](https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A{stock})
-- [재무비율](https://comp.fnguide.com/SVO2/ASP/SVD_FinanceRatio.asp?pGB=1&gicode=A{stock})
-- [투자지표](https://comp.fnguide.com/SVO2/ASP/SVD_Invest.asp?pGB=1&gicode=A{stock})
-- [컨센서스](https://comp.fnguide.com/SVO2/ASP/SVD_Consensus.asp?pGB=1&gicode=A{stock})
-- [지분분석](https://comp.fnguide.com/SVO2/ASP/SVD_shareanalysis.asp?pGB=1&gicode=A{stock})
-- [업종분석](https://comp.fnguide.com/SVO2/ASP/SVD_ujanal.asp?pGB=1&gicode=A{stock})
-- [경쟁사비교](https://comp.fnguide.com/SVO2/ASP/SVD_Comparison.asp?pGB=1&gicode=A{stock})
-- [거래소공시](https://comp.fnguide.com/SVO2/ASP/SVD_Disclosure.asp?pGB=1&gicode=A{stock})
-- [금감원공시](https://comp.fnguide.com/SVO2/ASP/SVD_Dart.asp?pGB=1&gicode=A{stock})
+- [메인](https://comp.fnguide.com/SVO2/ASP/SVD_main.asp?gicode=A{stock})
+- [기업개요](https://comp.fnguide.com/SVO2/ASP/SVD_Corp.asp?gicode=A{stock})
+- [재무제표](https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?gicode=A{stock})
+- [재무비율](https://comp.fnguide.com/SVO2/ASP/SVD_FinanceRatio.asp?gicode=A{stock})
+- [투자지표](https://comp.fnguide.com/SVO2/ASP/SVD_Invest.asp?gicode=A{stock})
+- [컨센서스](https://comp.fnguide.com/SVO2/ASP/SVD_Consensus.asp?gicode=A{stock})
+- [지분분석](https://comp.fnguide.com/SVO2/ASP/SVD_shareanalysis.asp?gicode=A{stock})
+- [업종분석](https://comp.fnguide.com/SVO2/ASP/SVD_ujanal.asp?gicode=A{stock})
+- [경쟁사비교](https://comp.fnguide.com/SVO2/ASP/SVD_Comparison.asp?gicode=A{stock})
+- [거래소공시](https://comp.fnguide.com/SVO2/ASP/SVD_Disclosure.asp?gicode=A{stock})
+- [금감원공시](https://comp.fnguide.com/SVO2/ASP/SVD_Dart.asp?gicode=A{stock})
 
 
 ## 예제
 
-- [삼성전자(A005930) | Snapshot | 기업정보 | Company Guide](https://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A005930)
-- [삼성전자(A005930) | 재무제표 | 기업정보 | Company Guide, 메뉴 포함](https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A005930&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701)
-- [삼성전자(A005930) | 재무제표 | 기업정보 | Company Guide, 메뉴 제외](https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A005930)
+- [삼성전자(A005930) | Snapshot | 기업정보 | Company Guide](https://comp.fnguide.com/SVO2/ASP/SVD_main.asp?gicode=A005930)
+- [삼성전자(A005930) | 재무제표 | 기업정보 | Company Guide, 메뉴 포함](https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?gicode=A005930&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701)
+- [삼성전자(A005930) | 재무제표 | 기업정보 | Company Guide, 메뉴 제외](https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?gicode=A005930)

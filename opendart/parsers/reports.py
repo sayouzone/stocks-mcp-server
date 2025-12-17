@@ -15,9 +15,9 @@ from ..utils import (
 
 class DartReportsParser:
     """
-    OpenDART API 파싱 클래스
+    OpenDART 정기보고서 주요정보 API 파싱 클래스
     
-    정기보고서 재무정보: Financial Information in Periodic Reports, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS003
+    정기보고서 주요정보: Key Information in Periodic Reports, https://opendart.fss.or.kr/guide/main.do?apiGrpCd=DS002
     """
 
     def __init__(self, client: OpenDartClient):

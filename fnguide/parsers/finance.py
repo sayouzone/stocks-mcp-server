@@ -14,6 +14,198 @@ from ..utils import (
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+class FnGuideFinanceParser:
+    """
+    FnGuide 재무제표 파싱 클래스
+    
+    Snapshot, https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?gicode=A{stock}
+    """
+
+    finance_table_titles = ["포괄손익계산서", "재무상태표", "현금흐름표"]
+
+    def __init__(self, client: FnGuideClient, debug: bool = False):
+        self.client = client
+
+        self.debug = debug
+        self.table_finder = TableFinder()
+        self.header_extractor = HeaderExtractor()
+    
+    def parse(self, stock: str):
+        """
+        기업 정보 | 재무제표 정보 추출 후 주요 키를 영어로 변환
+        requests로 HTML을 가져온 후 pandas.read_html()로 파싱
+
+        재무제표 3종(포괄손익계산서, 재무상태표, 현금흐름표)을
+        requests와 BeautifulSoup으로 크롤링하여 멀티인덱스 DataFrame으로 구조화
+
+        Args:
+            html_text (str): HTML text
+            stock: 종목 코드 (회사명을 "company"로 치환하기 위해 사용)
+
+        Returns:
+            {테이블명: 레코드_리스트} 딕셔너리
+        """
+
+        url = urls.get("재무제표")
+
+        if not url:
+            return
+        
+        params = {
+            "gicode": f"A{stock}"
+        }
+
+        try:
+            response = self.client._get(url, params=params)
+        except requests.RequestException as e:
+            logger.error(f"페이지 요청 실패: {e}")
+            return None
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # 테이블 파싱
+        result_dict = {}
+        
+        for title in self.finance_table_titles:
+            try:
+                df = self.parse_table(soup, title)
+                
+                if df is not None:
+                    # DataFrame을 레코드로 변환
+                    result_dict[title] = self._dataframe_to_records(df)
+                    #print(result_dict[title])
+                else:
+                    result_dict[title] = []
+            
+            except Exception as e:
+                logger.error(f"{title} 수집 실패: {e}")
+                result_dict[title] = []
+        
+        return result_dict
+    
+    def parse_table(
+        self,
+        soup: BeautifulSoup,
+        title: str
+    ) -> Optional[pd.DataFrame]:
+        """
+        단일 테이블 파싱
+        
+        Args:
+            soup: BeautifulSoup 객체
+            title: 테이블 제목
+        
+        Returns:
+            DataFrame 또는 None
+        """
+        logger.info(f"\n{title} 데이터 수집 중...")
+        
+        # 1. 테이블 찾기
+        table = self.table_finder.find_by_title(soup, title)
+        if not table:
+            return None
+        
+        # 2. thead 추출
+        thead = table.find("thead")
+        if not thead:
+            logger.warning("thead를 찾을 수 없음")
+            return None
+        
+        # 3. 헤더 인덱스 추출
+        index_list = self.header_extractor.extract_index_list(thead)
+        if not index_list:
+            logger.warning("인덱스 리스트가 비어있음")
+            return None
+        
+        # 4. tbody 추출
+        tbody = table.find("tbody")
+        if not tbody:
+            logger.warning("tbody를 찾을 수 없음")
+            return None
+        
+        # 5. 데이터 딕셔너리 추출
+        body_extractor = BodyExtractor(debug=self.debug)
+        data_dict = body_extractor.extract(tbody, index_list)
+        
+        if not data_dict:
+            logger.warning("데이터가 비어있음")
+            return None
+        
+        # 6. DataFrame 생성
+        df = self._create_dataframe(data_dict, index_list)
+        
+        logger.info(f"완료! DataFrame shape: {df.shape}")
+        
+        return df
+        
+    def _dataframe_to_records(self, frame: pd.DataFrame) -> list[dict[str, Any]]:
+        """
+        DataFrame을 JSON 직렬화를 위한 레코드 리스트로 변환한다.
+    
+        멀티인덱스 컬럼은 " / "로 결합된 단일 키로 변환하고,
+        인덱스(기간)는 'period' 필드로 포함한다.
+        """
+        if frame.empty:
+            return []
+    
+        flattened_columns = [self._flatten_column_key(col) for col in frame.columns]
+        records: list[dict[str, Any]] = []
+    
+        for index_label, row in frame.iterrows():
+            record: dict[str, Any] = {"period": str(index_label)}
+            for key, value in zip(flattened_columns, row.tolist()):
+                if key in record:
+                    suffix = 2
+                    new_key = f"{key}_{suffix}"
+                    while new_key in record:
+                        suffix += 1
+                        new_key = f"{key}_{suffix}"
+                    record[new_key] = value
+                else:
+                    record[key] = value
+            records.append(record)
+    
+        return records
+
+    @staticmethod
+    def _create_dataframe(
+        data_dict: Dict[Tuple[str, str], List[str]],
+        index_list: List[str]
+    ) -> pd.DataFrame:
+        """
+        데이터 딕셔너리에서 DataFrame 생성
+        
+        Args:
+            data_dict: {(카테고리, 항목): [값들]} 딕셔너리
+            index_list: 인덱스 리스트
+        
+        Returns:
+            멀티인덱스 컬럼을 가진 DataFrame
+        """
+        df = pd.DataFrame(data_dict, index=index_list)
+        
+        # 멀티인덱스로 컬럼 변환
+        df.columns = pd.MultiIndex.from_tuples(df.columns)
+        
+        return df
+
+    @staticmethod
+    def _flatten_column_key(column: Any) -> str:
+        """
+        멀티인덱스 컬럼 키를 JSON 직렬화가 가능한 단일 문자열로 변환한다.
+        """
+        if isinstance(column, tuple):
+            parts = [str(part).strip() for part in column if part not in (None, "")]
+            key = " / ".join(parts)
+        elif column is None:
+            key = ""
+        else:
+            key = str(column).strip()
+    
+        return key or "value"
+
+
 class TableFinder:
     """테이블 검색 클래스"""
     
@@ -246,193 +438,3 @@ class BodyExtractor:
         """
         if idx > 0 and idx % 20 == 0:
             logger.info(f"처리 중: {idx}/{total} 행")
-
-class FnGuideFinanceParser:
-    """
-    FnGuide 재무제표 파싱 클래스
-    
-    Snapshot, https://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?gicode=A{stock}
-    """
-
-    finance_table_titles = ["포괄손익계산서", "재무상태표", "현금흐름표"]
-
-    def __init__(self, client: FnGuideClient, debug: bool = False):
-        self.client = client
-
-        self.debug = debug
-        self.table_finder = TableFinder()
-        self.header_extractor = HeaderExtractor()
-    
-    def parse(self, stock: str):
-        """
-        기업 정보 | 재무제표 정보 추출 후 주요 키를 영어로 변환
-        requests로 HTML을 가져온 후 pandas.read_html()로 파싱
-
-        재무제표 3종(포괄손익계산서, 재무상태표, 현금흐름표)을
-        requests와 BeautifulSoup으로 크롤링하여 멀티인덱스 DataFrame으로 구조화
-
-        Args:
-            html_text (str): HTML text
-            stock: 종목 코드 (회사명을 "company"로 치환하기 위해 사용)
-
-        Returns:
-            {테이블명: 레코드_리스트} 딕셔너리
-        """
-
-        url = urls.get("재무제표")
-
-        if not url:
-            return
-        
-        params = {
-            "gicode": f"A{stock}"
-        }
-
-        try:
-            response = self.client._get(url, params=params)
-        except requests.RequestException as e:
-            logger.error(f"페이지 요청 실패: {e}")
-            return None
-
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        # 테이블 파싱
-        result_dict = {}
-        
-        for title in self.finance_table_titles:
-            try:
-                df = self.parse_table(soup, title)
-                
-                if df is not None:
-                    # DataFrame을 레코드로 변환
-                    result_dict[title] = self._dataframe_to_records(df)
-                    #print(result_dict[title])
-                else:
-                    result_dict[title] = []
-            
-            except Exception as e:
-                logger.error(f"{title} 수집 실패: {e}")
-                result_dict[title] = []
-        
-        return result_dict
-    
-    def parse_table(
-        self,
-        soup: BeautifulSoup,
-        title: str
-    ) -> Optional[pd.DataFrame]:
-        """
-        단일 테이블 파싱
-        
-        Args:
-            soup: BeautifulSoup 객체
-            title: 테이블 제목
-        
-        Returns:
-            DataFrame 또는 None
-        """
-        logger.info(f"\n{title} 데이터 수집 중...")
-        
-        # 1. 테이블 찾기
-        table = self.table_finder.find_by_title(soup, title)
-        if not table:
-            return None
-        
-        # 2. thead 추출
-        thead = table.find("thead")
-        if not thead:
-            logger.warning("thead를 찾을 수 없음")
-            return None
-        
-        # 3. 헤더 인덱스 추출
-        index_list = self.header_extractor.extract_index_list(thead)
-        if not index_list:
-            logger.warning("인덱스 리스트가 비어있음")
-            return None
-        
-        # 4. tbody 추출
-        tbody = table.find("tbody")
-        if not tbody:
-            logger.warning("tbody를 찾을 수 없음")
-            return None
-        
-        # 5. 데이터 딕셔너리 추출
-        body_extractor = BodyExtractor(debug=self.debug)
-        data_dict = body_extractor.extract(tbody, index_list)
-        
-        if not data_dict:
-            logger.warning("데이터가 비어있음")
-            return None
-        
-        # 6. DataFrame 생성
-        df = self._create_dataframe(data_dict, index_list)
-        
-        logger.info(f"완료! DataFrame shape: {df.shape}")
-        
-        return df
-        
-    def _dataframe_to_records(self, frame: pd.DataFrame) -> list[dict[str, Any]]:
-        """
-        DataFrame을 JSON 직렬화를 위한 레코드 리스트로 변환한다.
-    
-        멀티인덱스 컬럼은 " / "로 결합된 단일 키로 변환하고,
-        인덱스(기간)는 'period' 필드로 포함한다.
-        """
-        if frame.empty:
-            return []
-    
-        flattened_columns = [self._flatten_column_key(col) for col in frame.columns]
-        records: list[dict[str, Any]] = []
-    
-        for index_label, row in frame.iterrows():
-            record: dict[str, Any] = {"period": str(index_label)}
-            for key, value in zip(flattened_columns, row.tolist()):
-                if key in record:
-                    suffix = 2
-                    new_key = f"{key}_{suffix}"
-                    while new_key in record:
-                        suffix += 1
-                        new_key = f"{key}_{suffix}"
-                    record[new_key] = value
-                else:
-                    record[key] = value
-            records.append(record)
-    
-        return records
-
-    @staticmethod
-    def _create_dataframe(
-        data_dict: Dict[Tuple[str, str], List[str]],
-        index_list: List[str]
-    ) -> pd.DataFrame:
-        """
-        데이터 딕셔너리에서 DataFrame 생성
-        
-        Args:
-            data_dict: {(카테고리, 항목): [값들]} 딕셔너리
-            index_list: 인덱스 리스트
-        
-        Returns:
-            멀티인덱스 컬럼을 가진 DataFrame
-        """
-        df = pd.DataFrame(data_dict, index=index_list)
-        
-        # 멀티인덱스로 컬럼 변환
-        df.columns = pd.MultiIndex.from_tuples(df.columns)
-        
-        return df
-
-    @staticmethod
-    def _flatten_column_key(column: Any) -> str:
-        """
-        멀티인덱스 컬럼 키를 JSON 직렬화가 가능한 단일 문자열로 변환한다.
-        """
-        if isinstance(column, tuple):
-            parts = [str(part).strip() for part in column if part not in (None, "")]
-            key = " / ".join(parts)
-        elif column is None:
-            key = ""
-        else:
-            key = str(column).strip()
-    
-        return key or "value"

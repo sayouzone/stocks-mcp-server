@@ -61,8 +61,8 @@ def main(stock: str):
 
     #dart_api_key = os.getenv("DART_API_KEY", "")
 
-    # SEC에서 요구하는 User-Agent 설정
-    crawler = FnGuideCrawler(api_key=None)
+    # FnGuide에서 요구하는 User-Agent 설정
+    crawler = FnGuideCrawler()
 
     # 각 파일링 타입 데모
     demo_main(crawler, stock)

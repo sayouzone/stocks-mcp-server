@@ -8,37 +8,59 @@ Installation:
     pip install requests beautifulsoup4 lxml
 
 Quick Start:
-    >>> from edgar_crawler import EDGARCrawler
+    >>> from opendart import OpenDartCrawler
     >>> 
-    >>> crawler = EDGARCrawler(user_agent="MyCompany admin@email.com")
-    >>> cik = crawler.fetch_cik_by_ticker("AAPL")
+    >>> crawler = OpenDartCrawler(api_key=dart_api_key)
     >>> 
-    >>> # 10-K 재무 데이터 추출
-    >>> filings = extcrawlerractor.fetch_10k_filings(cik, count=1)
-    >>> data = crawler.extract_10k(cik, filings[0].accession_number)
-    >>> print(f"Revenue: ${data['financial_data'].revenue:,.0f}")
+    >>> # DART의 기업코드을 조회
+    >>> filings = crawler.fetch_corp_code(code)
+    >>> print(f"기업코드: {corp_code}")
     >>> 
-    >>> # 13F 포트폴리오 추출
-    >>> filings = crawler.fetch_13f_filings("0001067983", count=1)  # Berkshire
-    >>> portfolio = crawler.extract_13f("0001067983", filings[0].accession_number)
-    >>> print(f"Top Holding: {portfolio.top_holdings[0]['issuer']}")
+    >>> # 정기보고서 재무정보 | 단일회사 주요계정 조회
+    >>> api_type = "단일회사 주요계정"
+    >>> corp_name = crawler.fetch_corp_name(corp_code)
+    >>> data = crawler.finance(corp_code, last_year, api_type=api_type)
+    >>> list = data.get("list", [])
+    >>> print(pd.DataFrame(list))
     >>> 
-    >>> # DEF 14A 임원 보상
-    >>> filings = crawler.fetch_def14a_filings(cik, count=1)
-    >>> proxy = crawler.extract_def14a(cik, filings[0].accession_number)
-    >>> for exec in proxy.executive_compensation:
-    ...     print(f"{exec.name}: ${exec.total:,.0f}")
+    >>> # 정기보고서 주요정보 | 증자(감자) 현황
+    >>> year = "2024"
+    >>> quarter = 4
+    >>> api_no = 0 # 증자(감자) 현황
+    >>> api_key, data = crawler.reports(corp_code, year=year, quarter=quarter, api_no=api_no)
+    >>> list = data.get("list", [])
+    >>> print(pd.DataFrame(list))
+    >>> 
+    >>> # 지분공시 종합정보 | 대량보유 상황보고 현황
+    >>> api_no = 0 # 대량보유 상황보고 현황
+    >>> api_key, data = crawler.ownership(corp_code, api_no=api_no)
+    >>> list = data.get("list", [])
+    >>> print(pd.DataFrame(list))
+    >>> 
+    >>> # 주요사항보고서 주요정보 | 자산양수도(기타), 풋백옵션 현황
+    >>> corp_code = "00409681"
+    >>> api_no = 0 # 자산양수도(기타), 풋백옵션 현황
+    >>> api_key, data = crawler.material_facts(corp_code, start_date="20190101", end_date="20251231", api_no=api_no)
+    >>> list = data.get("list", [])
+    >>> print(pd.DataFrame(list))
+    >>> 
+    >>> # 증권신고서 주요정보 | 증자(감자) 현황
+    >>> corp_code = "00106395"
+    >>> api_no = 0 # 증자(감자) 현황
+    >>> api_key, data = crawler.registration(corp_code, start_date="20190101", end_date="20251231", api_no=api_no)
+    >>> list = data.get("list", [])
+    >>> print(pd.DataFrame(list))
 
 Supported Filings:
-    - 10-K: Annual Report (재무제표, 리스크 팩터, MD&A)
-    - 10-Q: Quarterly Report (분기 재무제표)
-    - 8-K: Current Report (중요 이벤트 공시)
-    - 13F: Institutional Holdings (기관투자자 포트폴리오)
-    - DEF 14A: Proxy Statement (임원 보상, 이사회, 거버넌스)
+    - DART의 기업코드을 조회
+    - 정기보고서 재무정보
+    - 정기보고서 주요정보
+    - 지분공시 종합정보
+    - 주요사항보고서 주요정보
+    - 증권신고서 주요정보
 
 Note:
-    SEC에서 User-Agent 헤더를 요구합니다. 
-    회사명과 이메일을 포함한 식별 가능한 User-Agent를 사용하세요.
+    OpenDart에서 API Key를 사용하세요.
 """
 
 __version__ = "0.1.0"

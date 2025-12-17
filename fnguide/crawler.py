@@ -33,14 +33,13 @@ class FnGuideCrawler:
                       'Chrome/120.0.0.0 Safari/537.36'
     }
     
-    def __init__(self, api_key: str = None):
+    def __init__(self):
         """크롤러를 초기화합니다.
         
         Args:
             code: 기업 코드 (기본값: 삼성전자)
         """
-        self.api_key = api_key
-        self.client = FnGuideClient(self.api_key)
+        self.client = FnGuideClient()
 
         # 파서 초기화
         self._company_parser = FnGuideCompanyParser(self.client)

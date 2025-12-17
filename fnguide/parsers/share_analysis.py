@@ -8,9 +8,9 @@ from ..utils import (
 
 class FnGuideShareAnalysisParser:
     """
-    FnGuide 금감원공시 파싱 클래스
+    FnGuide 지분분석 파싱 클래스
     
-    금감원공시, https://comp.fnguide.com/SVO2/ASP/SVD_Dart.asp?gicode=A{stock}
+    지분분석, https://comp.fnguide.com/SVO2/ASP/SVD_shareanalysis.asp?gicode=A{stock}
     """
 
     def __init__(self, client: FnGuideClient):
@@ -18,7 +18,7 @@ class FnGuideShareAnalysisParser:
     
     def parse(self, stock: str):
         """
-        기업 정보 | 금감원공시 정보 추출 후 주요 키를 영어로 변환
+        기업 정보 | 지분분석 정보 추출 후 주요 키를 영어로 변환
         requests로 HTML을 가져온 후 pandas.read_html()로 파싱
 
         Args:
@@ -29,7 +29,7 @@ class FnGuideShareAnalysisParser:
             Dict: 컬럼명이 번역된 DataFrame
         """
 
-        url = urls.get("금감원공시")
+        url = urls.get("지분분석")
 
         if not url:
             return
@@ -44,6 +44,6 @@ class FnGuideShareAnalysisParser:
             logger.error(f"페이지 요청 실패: {e}")
             return None
 
-        frames = pd.read_html(StringIO(response.text))
+        #frames = pd.read_html(StringIO(response.text))
 
         return None

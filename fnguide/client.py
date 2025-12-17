@@ -10,9 +10,7 @@ from .utils import urls
 class FnGuideClient:
     """FnGuide 클라이언트"""
     
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-
+    def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '

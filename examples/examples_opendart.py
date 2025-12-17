@@ -257,10 +257,11 @@ def demo_finance(crawler: OpenDartCrawler, corp_code: str):
     return rcept_no.iloc[0]
 
 def demo_download_xbrl(crawler: OpenDartCrawler, rcept_no: str = None):
-    # OpenDart 정기보고서 재무정보 - 재무제표 원본파일(XBRL). 다운로드
+    """OpenDart 정기보고서 재무정보 - 재무제표 원본파일(XBRL). 다운로드"""
     print(f"\n{'='*60}")
-    print(f"회사명 또는 종목코드로 DART의 기업코드을 조회 - {code}")
+    print(f"OpenDart 정기보고서 재무정보 - 재무제표 원본파일(XBRL) 다운로드 - {rcept_no}")
     print('='*60)
+
     #rcept_no = "20190401004781"
     rcept_no = "20250814003156" if not rcept_no else rcept_no
     save_path = crawler.finance_file(rcept_no, quarter = 4)
@@ -271,6 +272,10 @@ def demo_download_xbrl(crawler: OpenDartCrawler, rcept_no: str = None):
         print(f"저장 경로: {save_path}")
 
 def demo_reports(crawler: OpenDartCrawler, corp_code: str):
+    """정기보고서 주요정보 데모"""
+    print(f"\n{'='*60}")
+    print(f"회사명 또는 종목코드로 DART의 기업코드을 조회 - {code}")
+    print('='*60)
     corp_name = crawler.fetch_corp_name(corp_code)
 
     rcept_no = None
@@ -314,6 +319,10 @@ def demo_reports(crawler: OpenDartCrawler, corp_code: str):
         print(f"\n{year}년 {quarter}분기 접수번호: {rcept_no.iloc[0]}")
 
 def demo_ownership(crawler: OpenDartCrawler, corp_code: str):
+    """지분공시 종합정보 데모"""
+    print(f"\n{'='*60}")
+    print(f"지분공시 종합정보를 조회 - {code}")
+    print('='*60)
     corp_name = crawler.fetch_corp_name(corp_code)
 
     rcept_no = None
@@ -353,6 +362,10 @@ def demo_ownership(crawler: OpenDartCrawler, corp_code: str):
         print(f"\n접수번호: {rcept_no.iloc[0]}")
 
 def demo_material_facts(crawler: OpenDartCrawler, corp_code: str):
+    """주요사항보고서 주요정보 데모"""
+    print(f"\n{'='*60}")
+    print(f"회사명 또는 종목코드로 DART의 주요사항보고서 주요정보를 조회 - {code}")
+    print('='*60)
     corp_name = crawler.fetch_corp_name(corp_code)
 
     rcept_no = None
@@ -400,6 +413,10 @@ def demo_material_facts(crawler: OpenDartCrawler, corp_code: str):
         print(f"\n접수번호: {rcept_no.iloc[0]}")
 
 def demo_registration(crawler: OpenDartCrawler, corp_code: str):
+    """증권신고서 주요정보 데모"""
+    print(f"\n{'='*60}")
+    print(f"회사명 또는 종목코드로 DART의 증권신고서 주요정보를 조회 - {code}")
+    print('='*60)
     #corp_name = crawler.fetch_corp_name(corp_code)
     #start_date = "20150101"
     #end_date = "20251231"
@@ -510,7 +527,7 @@ def main(code: str):
     load_dotenv()
     dart_api_key = os.getenv("DART_API_KEY", "")
 
-    # SEC에서 요구하는 User-Agent 설정
+    # OpenDart에서 요구하는 User-Agent 설정
     crawler = OpenDartCrawler(api_key=dart_api_key)
 
     # 회사이름으로 corp_code 검색
