@@ -20,8 +20,8 @@ opendart/
 ├── examples.py          # 사용 예시
 └── parsers/
     ├── __init__.py
-    ├── news.py          # 문서 API 파서
-    └── market.py        # 정기보고서 주요정보 API 파서
+    ├── news.py          # Naver News 크롤링 파서
+    └── market.py        # Naver Market API/크롤링 파서
 ```
 
 ```

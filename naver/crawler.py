@@ -8,33 +8,15 @@ from .parsers import (
 
 class NaverCrawler:
         
-    """DART 공시 문서 크롤러.
+    """Naver 뉴스/시세 크롤러."""
     
-    기업의 공시 문서를 DART에서 크롤링하여 GCS에 업로드합니다.
-    """
-    
-    # 제외할 공시 유형
-    EXCLUDED_REPORT_TYPES = frozenset({"기업설명회(IR)개최(안내공시)"})
-    request_delay_seconds = 3
-
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                      'AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/120.0.0.0 Safari/537.36'
-    }
-    
-    def __init__(self):
-        """크롤러를 초기화합니다.
-        
-        Args:
-            code: 기업 코드 (기본값: 삼성전자)
-        """
+    def __init__(self, client_id: str = None, client_secret: str = None):
+        """크롤러를 초기화합니다."""
         self.client = NaverClient()
 
         # 파서 초기화
-        self._news_parser = NaverNewsParser(self.client)
+        self._news_parser = NaverNewsParser(self.client, client_id, client_secret)
         self._market_parser = NaverMarketParser(self.client)
-        self._corp_data : Optional[list] = None
 
     def main(self, stock: str):
         return self._main_parser.parse(stock)

@@ -20,12 +20,12 @@ class NaverNewsParser:
     """
 
     max_per_category = 10
-
-    client_id = 'EOof636e7yvLvMe3t1jg'
-    client_secret = 'lb4v_qXkRI'
     
-    def __init__(self, client: NaverClient):
+    def __init__(self, client: NaverClient, client_id, client_secret):
         self.client = client
+
+        self.client_id = client_id
+        self.client_secret = client_secret
 
     def fetch(
         self,
