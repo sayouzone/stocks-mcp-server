@@ -29,23 +29,29 @@ class NaverCrawler:
         Args:
             code: 기업 코드 (기본값: 삼성전자)
         """
-        self.client = FnGuideClient()
+        self.client = NaverClient()
 
         # 파서 초기화
-        self._company_parser = FnGuideCompanyParser(self.client)
-        self._comparison_viewer = FnGuideComparisonParser(self.client)
-        self._consensus_parser = FnGuideConsensusParser(self.client)
-        self._dart_parser = FnGuideDartParser(self.client)
-        self._disclosure_parser = FnGuideDisclosureParser(self.client)
-        self._finance_ratio_parser = FnGuideFinanceRatioParser(self.client)
-        self._finance_parser = FnGuideFinanceParser(self.client)
-        self._industry_parser = FnGuideIndustryAnalysisParser(self.client)
-        self._main_parser = FnGuideMainParser(self.client)
-        self._share_analysis_parser = FnGuideShareAnalysisParser(self.client)
+        self._news_parser = NaverNewsParser(self.client)
+        self._market_parser = NaverMarketParser(self.client)
         self._corp_data : Optional[list] = None
 
     def main(self, stock: str):
         return self._main_parser.parse(stock)
 
-    def finance(self, stock: str):
-        return self._finance_parser.parse(stock)
+    def market(self, stock: str, start_date: str = None, end_date: str = None):
+        return self._market_parser.fetch(stock, start_date=start_date, end_date=end_date)
+
+    def main_prices(self, stock: str):
+        return self._market_parser.fetch_main_prices(stock)
+
+    def company_metadata(self, stock: str):
+        return self._market_parser.fetch_company_metadata(stock)
+
+    def news(self, query: str, max_articles: int = 100):
+        news_list = self._news_parser.fetch(query=query, max_articles=max_articles)
+
+        return self._news_parser.parse(news_list)
+
+    def category_news(self):
+        return self._news_parser.fetch(category="카테고리")

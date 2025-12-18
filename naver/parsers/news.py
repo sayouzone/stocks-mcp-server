@@ -1,3 +1,17 @@
+import random
+import time
+
+from bs4 import BeautifulSoup, Tag
+from typing import Dict, Any, List, Tuple, Optional
+from urllib import parse
+
+from ..client import NaverClient
+from ..utils import (
+    news_urls,
+    finance_url,
+    finance_api_url,
+)
+
 class NaverNewsParser:
     """
     뉴스 검색 클래스
@@ -5,29 +19,15 @@ class NaverNewsParser:
     Independent Naver news pipeline (no NaverCrawler dependency).
     """
 
-    news_categories = {
-        '정치': 'https://news.naver.com/section/100',
-        '경제': 'https://news.naver.com/section/101',
-        '사회': 'https://news.naver.com/section/102',
-        '생활/문화': 'https://news.naver.com/section/103',
-        'IT/과학': 'https://news.naver.com/section/105',
-        '세계': 'https://news.naver.com/section/104'
-    }
-
     max_per_category = 10
-    news_openapi_url = "https://openapi.naver.com/v1/search/news.json?query={query}&display={display}"
 
     client_id = 'EOof636e7yvLvMe3t1jg'
     client_secret = 'lb4v_qXkRI'
-
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
-    }
     
-    def __init__(self):
-        self.client = httpx.AsyncClient(headers=self.headers, follow_redirects=True)
+    def __init__(self, client: NaverClient):
+        self.client = client
 
-    async def fetch(
+    def fetch(
         self,
         category: str = "조회",
         query: str | None = None,
@@ -51,12 +51,15 @@ class NaverNewsParser:
         if category != "조회":
             return self._fetch_category_news()
         
-        url = self.news_openapi_url if not url else url
+        url = news_urls.get("openapi") if not url else url
         enc_text = parse.quote(query)
-        api_url = url.format(query=enc_text, display=max_articles)
-        
-        print(f"News 목록 URL: {api_url}")
+        #api_url = url.format(query=enc_text, display=max_articles)
 
+        params = {
+            "query": enc_text,
+            "display": max_articles
+        }
+        
         api_headers = {
             "X-Naver-Client-Id": self.client_id,
             "X-Naver-Client-Secret": self.client_secret
@@ -64,8 +67,8 @@ class NaverNewsParser:
 
         articles = []
         try:
-            response = await self.client.get(api_url, headers=api_headers)
-            response.raise_for_status()
+            print(f"News 목록 URL: {url}, headers: {api_headers}, params: {params}")
+            response = self.client._get(url, params=params, headers=api_headers)
             search_result = response.json()
 
             # JSON에서 link 정보 추출
@@ -84,7 +87,7 @@ class NaverNewsParser:
         
         return articles
 
-    async def parse(
+    def parse(
         self,
         articles: List[Dict]
     ) -> List[Dict]:
@@ -104,10 +107,10 @@ class NaverNewsParser:
             news_url = article.get('url')
             
             if news_url and 'news.naver.com' in news_url:
-                detail = NaverNewsDetail()
-                article = await detail.fetch(article)
+                detail = NaverNewsDetail(self.client)
+                article = detail.fetch(article)
             
-            await asyncio.sleep(random.uniform(0.1, 0.3))
+            time.sleep(random.uniform(0.1, 0.3))
 
         return articles
 
@@ -117,18 +120,64 @@ class NaverNewsParser:
         """
         
         articles = []
-        for category_name, category_url in categories.items():
+        for category_name, category_url in news_urls.items():
+            if category_name == "openapi":
+                continue
             print(f"News 목록 URL: {category_url}")
-            article_links = get_article_links(driver, category_url, self.max_per_category)
+            article_links = self._select_articles(category_url, self.max_per_category)
 
-            for url in article_links:
-                article = {
-                    'query': category_name,
-                    'url': url
+            for article in article_links:
+                category = {
+                    'query': category_name
                 }
-                articles.append(article)
+                category.update(article)
+                articles.append(category)
 
         return articles
+
+    def _select_articles(self, category_url, num_articles):
+
+        article_links = []
+
+        referer = "https://news.naver.com/"
+        print(category_url, referer)
+        response = self.client._get(category_url, referer=referer, timeout=30)
+        #print(response.text)
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        try:
+            selectors = [
+                'a.sa_text_lede',
+                'a.sa_text_strong',
+                '.sa_text a',
+                '.cluster_text_headline a',
+                '.cluster_text_lede a'
+            ]
+
+            for selector in selectors:
+                elements = soup.select(selector)
+                for element in elements:
+                    #print(element)
+                    url = element.get('href')
+                    if (url and 'news.naver.com' in url and '/article/'in url
+                        and '/comment/' not in url  # 댓글 페이지만 제외
+                        and url not in article_links):
+                        article_links.append({
+                            "title": element.get_text().strip(),
+                            "url": url,
+                        })
+                        if len(article_links) >= num_articles:
+                            break
+                if len(article_links) >= num_articles:
+                    break
+
+            print(f"✅ {len(article_links)}개의 기사 링크 수집 완료")
+
+        except Exception as e:
+            print(f" 기사 링크 수집 실패: {e}")
+
+        return article_links[:num_articles]
 
 class NaverNewsDetail:
     
@@ -154,21 +203,21 @@ class NaverNewsDetail:
     }
     
     def __init__(
-        self, 
-        url: str | None = None
-    ):
-        self.client = httpx.AsyncClient(headers=self.headers, follow_redirects=True)
-        self.url = url
-
-    async def fetch(
         self,
+        client: NaverClient
+    ):
+        self.client = client
+
+    def fetch(
+        self,
+        url: str | None = None,
         article: Dict | None = None
     ):
-        news_url = article.get('url')
+        news_url = url if url else article.get('url')
         
         try:
             print(f"News Detail URL: {news_url}")
-            response = await self.client.get(news_url)
+            response = self.client._get(news_url)
             response.raise_for_status()
 
             # 뉴스 상세 정보 파싱
