@@ -36,3 +36,8 @@ cik = crawler.fetch_cik_by_ticker("AAPL")
 filings = crawler.fetch_filings(cik, doc_type="10-K", count=1)
 data = crawler.extract_10k(cik, filings[0].document_url, filings[0].accession_number)
 ```
+
+## 참조
+
+- [Unveiling the Smart Money: Extracting and Analyzing Institutional Holdings from SEC EDGAR](https://medium.com/@larry.prestosa/unveiling-the-smart-money-extracting-and-analyzing-institutional-holdings-from-sec-edgar-5ebcc195dbb2) : https://medium.com/@larry.prestosa/unveiling-the-smart-money-extracting-and-analyzing-institutional-holdings-from-sec-edgar-5ebcc195dbb2
+- [SEC EDGAR MCP](https://github.com/stefanoamorelli/sec-edgar-mcp) : https://github.com/stefanoamorelli/sec-edgar-mcp

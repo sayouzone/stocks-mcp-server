@@ -16,51 +16,48 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from yahoo import YahooCrawler
 
-def demo_market(crawler: YahooCrawler, code: str):
+def demo_info(crawler: YahooCrawler, ticker: str):
     """Yahoo 주요 시세 조회 데모"""
     print(f"\n{'='*60}")
-    print(f"Yahoo 주요 시세 조회 - {code}")
+    print(f"Yahoo 주요 시세 조회 - {ticker}")
+    print('='*60)
+
+    # 정보 데모
+    print(f"\nYahoo 정보 조회 ({ticker})")
+    data = crawler.info(ticker)
+    print(data)
+
+def demo_market(crawler: YahooCrawler, ticker: str):
+    """Yahoo 주요 시세 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"Yahoo 주요 시세 조회 - {ticker}")
     print('='*60)
 
     # 일별 시세 데모
-    start_date='2025-01-01'
+    start_date='2025-12-01'
     end_date='2025-12-31'
-    print(f"\nYahoo 일별 시세 조회 ({code}) {start_date} ~ {end_date}")
+    print(f"\nYahoo 일별 시세 조회 ({ticker}) {start_date} ~ {end_date}")
 
-    data = crawler.market(code, start_date=start_date, end_date=end_date)
+    data = crawler.market(ticker, start_date=start_date, end_date=end_date)
     print(data)
 
-    # 주요 시세 데모
-    print("\nYahoo 주요 시세 조회")
-
-    df_main_prices = crawler.main_prices(code)
-    print(df_main_prices)
-
-    # 주요 시세 데모
-    metadata = crawler.company_metadata(code)
-    print(metadata)
-
-def demo_news(crawler: YahooCrawler, code: str):
+def demo_news(crawler: YahooCrawler, ticker: str):
     """Yahoo 뉴스 조회 데모"""
     print(f"\n{'='*60}")
-    print(f"Yahoo 뉴스 조회 - {code}")
+    print(f"Yahoo 뉴스 조회 - {ticker}")
     print('='*60)
 
-    # Yahoo 뉴스 카테고리별 검색
-    category_news = crawler.category_news()
-    print(category_news)
-
     # Yahoo 뉴스 검색
-    query="삼성전자"
+    query=ticker
     print(f"\nYahoo 뉴스 검색: {query}")
 
     data = crawler.news(query=query, max_articles=10)
-    #print(data)
+    print(data)
 
-    for item in data:
-        print(item)
+    #for item in data:
+    #    print(item)
 
-def main(stock: str):
+def main(ticker: str):
     """메인 데모 실행"""
     
     load_dotenv()
@@ -69,8 +66,9 @@ def main(stock: str):
     crawler = YahooCrawler()
 
     # 각 파일링 타입 데모
-    #demo_market(crawler, stock)
-    demo_news(crawler, stock)
+    #demo_info(crawler, ticker)
+    demo_market(crawler, ticker)
+    #demo_news(crawler, ticker)
     
     print("\n" + "="*60)
     print("Demo completed!")
@@ -79,5 +77,5 @@ def main(stock: str):
 
 if __name__ == "__main__":
     # 삼성전자, 하이닉스, 네이버 예시
-    code = "005930" # 삼성전자
-    main(code)
+    ticker = "TSLA" # 삼성전자
+    main(ticker)

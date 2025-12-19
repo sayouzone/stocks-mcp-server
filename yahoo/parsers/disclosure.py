@@ -1,3 +1,5 @@
+from ..client import YahooClient
+
 class YahooDisclosureParser:
     """
     Yahoo Finance API 파싱 클래스
