@@ -31,6 +31,12 @@ class YahooCrawler:
 
     def dividends(self, ticker: str):
         return self._market_parser.dividends(ticker)
+
+    def capital_gains(self, ticker: str):
+        return self._market_parser.capital_gains(ticker)
+
+    def splits(self, ticker: str):
+        return self._market_parser.splits(ticker)
     
     def fundamentals(self, ticker: str):
         return self._fundamentals_parser.fetch_financials(ticker, name="income", timescale="yearly")

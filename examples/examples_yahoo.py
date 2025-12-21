@@ -49,6 +49,18 @@ def demo_market(crawler: YahooCrawler, ticker: str):
     data = crawler.dividends(ticker=ticker)
     print(data)
 
+    # 양도소득 조회
+    ticker = "AAPL"
+    print(f"\nYahoo 양도소득 조회 ({ticker})")
+    data = crawler.capital_gains(ticker=ticker)
+    print(data)
+
+    # 주식 분할 조회
+    ticker = "AAPL"
+    print(f"\nYahoo 배당 조회 ({ticker})")
+    data = crawler.splits(ticker=ticker)
+    print(data)
+
 def demo_news(crawler: YahooCrawler, ticker: str):
     """Yahoo 뉴스 조회 데모"""
 
@@ -57,10 +69,8 @@ def demo_news(crawler: YahooCrawler, ticker: str):
     print('='*60)
 
     # Yahoo 뉴스 검색
-    query=ticker
-    print(f"\nYahoo 뉴스 검색: {query}")
-
-    data = crawler.news(query=query, max_articles=10)
+    print(f"\nYahoo 뉴스 검색: {ticker}")
+    data = crawler.news(query=ticker, max_articles=10)
     print(data)
 
 def demo_financials(crawler: YahooCrawler, ticker: str):
@@ -71,7 +81,6 @@ def demo_financials(crawler: YahooCrawler, ticker: str):
 
     # Yahoo 재무제표
     print(f"\nYahoo 재무제표 손익계산서 검색: {ticker}")
-
     data = crawler.fundamentals(ticker)
     print(data)
 

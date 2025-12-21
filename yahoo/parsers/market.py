@@ -137,7 +137,32 @@ class YahooMarketParser:
             return dividends[dividends != 0]
 
         return pd.DataFrame()
-        
+
+    def capital_gains(self, ticker: str):
+        """
+        Yahoo Finance로부터 양도소득 (Capital Gains) 정보를 반환합니다.
+        """
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        start_date = (datetime.now() - timedelta(days=(99*365))).strftime('%Y-%m-%d')
+        df =self.fetch(ticker, start_date=start_date, end_date=end_date)
+        if "CapitalGains" in df:
+            capital_gains = df["CapitalGains"]
+            return capital_gains[capital_gains != 0]
+
+        return pd.DataFrame()
+
+    def splits(self, ticker: str):
+        """
+        Yahoo Finance로부터 주식 분할 정보를 반환합니다.
+        """
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        start_date = (datetime.now() - timedelta(days=(99*365))).strftime('%Y-%m-%d')
+        df =self.fetch(ticker, start_date=start_date, end_date=end_date)
+        if "Stock Splits" in df:
+            splits = df["Stock Splits"]
+            return splits[splits != 0]
+
+        return pd.DataFrame()
 
     def fetch_with_yfinance(self, ticker: str, start_date: str | None = None, end_date: str | None = None) -> pd.DataFrame:
         """
