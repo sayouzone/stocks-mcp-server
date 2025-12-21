@@ -10,7 +10,9 @@ from datetime import datetime, timedelta
 from ..client import YahooClient
 from ..utils import (
     _ROOT_URL_,
-    _BASE_URL_
+    _BASE_URL_,
+    _QUOTE_SUMMARY_URL_,
+    _NEWS_URL_
 )
 
 logger = logging.getLogger(__name__)
@@ -36,6 +38,14 @@ class YahooNewsParser:
         "all": "newsAll",
         "news": "latestNews",
         "press releases": "pressRelease",
+    }
+
+    # Rename for compatibility
+    RENAME_MAP = {
+        "pubDate": "providerPublishTime",
+        "content_pubDate": "providerPublishTime",
+        "canonicalUrl.url": "link",
+        "content_canonicalUrl_url": "link",
     }
 
     def __init__(self, client: YahooClient):
@@ -83,8 +93,12 @@ class YahooNewsParser:
     
     def _fetch_with_requests(self, ticker: str, query_ref: str, max_articles: int) -> list[dict]:
         """Yahoo Finance에서 requests를 사용해서 뉴스 목록 크롤링"""
-        url = f"{_ROOT_URL_}/xhr/ncp"
-        params = { "queryRef": query_ref, "serviceKey": "ncp_fin" }
+
+        params = { 
+            "queryRef": query_ref, 
+            "serviceKey": "ncp_fin" 
+        }
+        
         payload = {
             "serviceConfig": {
                 "snippetCount": max_articles,
@@ -93,7 +107,7 @@ class YahooNewsParser:
         }
         
         try:
-            response = self.client._post(url, params=params, body=payload, timeout=10)
+            response = self.client._post(_NEWS_URL_, params=params, body=payload, timeout=10)
             data = response.json()
             status = data.get('status')
             stream = data.get("data", {}).get("tickerStream", {}).get("stream", [])
@@ -185,16 +199,8 @@ class YahooNewsParser:
     def _finalize_dataframe(self, df: pd.DataFrame, query: str, period: str) -> pd.DataFrame:
         if df.empty:
             return df
-        
-        # Rename for compatibility
-        rename_map = {
-            "pubDate": "providerPublishTime",
-            "content_pubDate": "providerPublishTime",
-            "canonicalUrl.url": "link",
-            "content_canonicalUrl_url": "link",
-        }
 
-        df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns}, inplace=True)
+        df.rename(columns={k: v for k, v in self.RENAME_MAP.items() if k in df.columns}, inplace=True)
 
         # Add additional metadata
         df['search_keyword'] = query

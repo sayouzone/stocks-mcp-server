@@ -13,6 +13,8 @@ from ..utils import (
     _ROOT_URL_,
     _BASE_URL_,
     _QUOTE_SUMMARY_URL_,
+    _ADDITIONAL_URL_,
+    _CRUMB_URL_,
     quote_summary_valid_modules
 )
 
@@ -59,11 +61,10 @@ class YahooInfoParser:
 
         #print(info)
 
-        additional_url = f"{_QUERY1_URL_}/v7/finance/quote"
         params = {"symbols": ticker, "formatted": "false"}
         params["crumb"] = self._fetch_crumb()
 
-        response = self.client._get(additional_url, params=params)
+        response = self.client._get(_ADDITIONAL_URL_, params=params)
         additional_info = response.json()
         #print(additional_info)
 
@@ -122,8 +123,7 @@ class YahooInfoParser:
 
         self.client._get(_ROOT_URL_)
 
-        crumb_url = f"{_BASE_URL_}/v1/test/getcrumb"
-        response = self.client._get(crumb_url)
+        response = self.client._get(_CRUMB_URL_)
         self._crumb = response.content.decode("utf-8").strip()
         return self._crumb
         

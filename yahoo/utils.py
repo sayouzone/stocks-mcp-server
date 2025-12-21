@@ -2,6 +2,12 @@ _QUERY1_URL_ = 'https://query1.finance.yahoo.com'
 _BASE_URL_ = 'https://query2.finance.yahoo.com'
 _ROOT_URL_ = 'https://finance.yahoo.com'
 _QUOTE_SUMMARY_URL_ = f"{_BASE_URL_}/v10/finance/quoteSummary"
+_ADDITIONAL_URL_ = f"{_QUERY1_URL_}/v7/finance/quote"
+_FINANCIAL_CHART_URL_ = f"{_BASE_URL_}/v8/finance/chart"
+_NEWS_URL_ = f"{_ROOT_URL_}/xhr/ncp"
+_FUNDAMENTALS_TIMESERIES_URL_ = f"{_BASE_URL_}/ws/fundamentals-timeseries/v1/finance/timeseries"
+
+_CRUMB_URL_ = f"{_BASE_URL_}/v1/test/getcrumb"
 
 fundamentals_keys = {
     'financials': ["TaxEffectOfUnusualItems", "TaxRateForCalcs", "NormalizedEBITDA", "NormalizedDilutedEPS",
@@ -119,7 +125,7 @@ fundamentals_keys = {
                   "OtherCashPaymentsfromOperatingActivities", "PaymentsonBehalfofEmployees",
                   "PaymentstoSuppliersforGoodsandServices", "ClassesofCashReceiptsfromOperatingActivities",
                   "OtherCashReceiptsfromOperatingActivities", "ReceiptsfromGovernmentGrants", "ReceiptsfromCustomers"]}
-                  
+
 quote_summary_valid_modules = (
     "summaryProfile",  # contains general information about the company
     "summaryDetail",  # prices + volume + market cap + etc

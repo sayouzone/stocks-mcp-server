@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 from ..client import YahooClient
 from ..utils import (
     _ROOT_URL_,
-    _BASE_URL_
+    _BASE_URL_,
+    _FINANCIAL_CHART_URL_
 )
 
 from .info import YahooInfoParser
@@ -35,7 +36,7 @@ class YahooMarketParser:
             raise ValueError("Ticker symbol must be provided.")
 
         info_parser = YahooInfoParser(self.client)
-        ticker_info = info_parser.fetch(ticker)\
+        ticker_info = info_parser.fetch(ticker)
 
         # 1. 날짜 설정
         if not end_date:
@@ -43,7 +44,7 @@ class YahooMarketParser:
         if not start_date:
             start_date = (datetime.now() - timedelta(days=180)).strftime('%Y-%m-%d')
 
-        url = f"{_BASE_URL_}/v8/finance/chart/{ticker}"
+        url = f"{_FINANCIAL_CHART_URL_}/{ticker}"
         params = {
             'period1': int(datetime.strptime(start_date, '%Y-%m-%d').timestamp()),
             'period2': int(datetime.strptime(end_date, '%Y-%m-%d').timestamp()),
@@ -175,6 +176,12 @@ class YahooMarketParser:
         hist_df['volume'] = hist_df['volume'].astype('int64')
 
         return hist_df
+
+    def _df_tz(df, tz):
+        if df.index.tz in None:
+            df.index = df.index.tz_localize("UTC")
+        df.index = df.index.tz_convert(tz)
+        return df
 
     def _events(self, data):
         dividends = None

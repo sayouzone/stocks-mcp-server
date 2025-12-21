@@ -18,6 +18,7 @@ from yahoo import YahooCrawler
 
 def demo_info(crawler: YahooCrawler, ticker: str):
     """Yahoo 주요 시세 조회 데모"""
+
     print(f"\n{'='*60}")
     print(f"Yahoo 주요 시세 조회 - {ticker}")
     print('='*60)
@@ -29,6 +30,7 @@ def demo_info(crawler: YahooCrawler, ticker: str):
 
 def demo_market(crawler: YahooCrawler, ticker: str):
     """Yahoo 주요 시세 조회 데모"""
+
     print(f"\n{'='*60}")
     print(f"Yahoo 주요 시세 조회 - {ticker}")
     print('='*60)
@@ -42,12 +44,14 @@ def demo_market(crawler: YahooCrawler, ticker: str):
     print(data)
 
     # 배당 조회
+    ticker = "AAPL"
     print(f"\nYahoo 배당 조회 ({ticker})")
-    data = crawler.dividends(ticker="AAPL")
+    data = crawler.dividends(ticker=ticker)
     print(data)
 
 def demo_news(crawler: YahooCrawler, ticker: str):
     """Yahoo 뉴스 조회 데모"""
+
     print(f"\n{'='*60}")
     print(f"Yahoo 뉴스 조회 - {ticker}")
     print('='*60)
@@ -58,9 +62,6 @@ def demo_news(crawler: YahooCrawler, ticker: str):
 
     data = crawler.news(query=query, max_articles=10)
     print(data)
-
-    #for item in data:
-    #    print(item)
 
 def demo_financials(crawler: YahooCrawler, ticker: str):
     """Yahoo 재무제표 조회 데모"""
@@ -113,10 +114,10 @@ def main(ticker: str):
     crawler = YahooCrawler()
 
     # 각 파일링 타입 데모
-    #demo_info(crawler, ticker)
+    demo_info(crawler, ticker)
     demo_market(crawler, ticker)
-    #demo_news(crawler, ticker)
-    #demo_financials(crawler, ticker)
+    demo_news(crawler, ticker)
+    demo_financials(crawler, ticker)
     
     print("\n" + "="*60)
     print("Demo completed!")

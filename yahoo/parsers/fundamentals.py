@@ -13,6 +13,7 @@ from ..utils import (
     _ROOT_URL_,
     _BASE_URL_,
     _QUOTE_SUMMARY_URL_,
+    _FUNDAMENTALS_TIMESERIES_URL_,
     fundamentals_keys
 )
 
@@ -63,7 +64,7 @@ class YahooFundamentalsParser:
         start_dt = datetime(2016, 12, 31)
         end_ts = int(pd.Timestamp.utcnow().ceil("D").timestamp())
 
-        url = f"{_BASE_URL_}/ws/fundamentals-timeseries/v1/finance/timeseries/{ticker}?"
+        url = f"{_FUNDAMENTALS_TIMESERIES_URL_}/{ticker}"
         params = {
             "symbol": ticker,
             "type": ",".join([timescale + k for k in keys]),
