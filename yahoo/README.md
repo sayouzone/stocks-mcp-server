@@ -12,9 +12,10 @@ yahoo/
 ├── examples.py          # 사용 예시
 └── parsers/
     ├── __init__.py
-    ├── disclosure.py      # 공시정보 API 파서
-    ├── market.py          # 재무정보 API 파서
-    └── news.py            # 뉴스 API 파서
+    ├── fundamentals.py  # 재무정보 API 파서
+    ├── info.py          # 기업정보 API 파서
+    ├── market.py        # 시세정보 API 파서
+    └── news.py          # 뉴스 API 파서
 ```
 
 https://developer.yahoo.com/api/
@@ -31,6 +32,16 @@ If you need general news or are unable to use yfinance, consider these alternati
 
 
 yfinance
+
+_QUERY1_URL_ = 'https://query1.finance.yahoo.com'
+_BASE_URL_ = 'https://query2.finance.yahoo.com'
+_ROOT_URL_ = 'https://finance.yahoo.com'
+
+https://finance.yahoo.com/xhr/ncp?queryRef={query_ref}&serviceKey=ncp_fin (POST)
+https://finance.yahoo.com/calendar/earnings?symbol=INTC
+https://markets.businessinsider.com/ajax/SearchController_Suggest?max_results=25&query={urlencode(q)}
+https://finance.yahoo.com/calendar/earnings?symbol={}&offset={}&size={} # .format(ticker, offset, size), size: ~ 100
+https://query1.finance.yahoo.com/v1/finance/visualization
 
 ```python
     def get_news(self, count=10, tab="news", proxy=_SENTINEL_) -> list:

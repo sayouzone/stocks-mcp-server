@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 import yfinance as yf
 from datetime import datetime, timedelta
@@ -5,11 +6,13 @@ from datetime import datetime, timedelta
 from ..client import YahooClient
 from ..utils import (
     _ROOT_URL_,
-    _BASE_URL_,
+    _QUERY2_URL_,
     _FINANCIAL_CHART_URL_
 )
 
 from .info import YahooInfoParser
+
+logger = logging.getLogger(__name__)
 
 class YahooMarketParser:
     """

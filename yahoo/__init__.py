@@ -8,59 +8,69 @@ Installation:
     pip install requests beautifulsoup4 lxml
 
 Quick Start:
-    >>> from opendart import OpenDartCrawler
+    >>> from yahoo import YahooCrawler
     >>> 
-    >>> crawler = OpenDartCrawler(api_key=dart_api_key)
+    >>> crawler = YahooCrawler()
     >>> 
-    >>> # DART의 기업코드을 조회
-    >>> filings = crawler.fetch_corp_code(code)
-    >>> print(f"기업코드: {corp_code}")
+    >>> # 기업 정보 조회
+    >>> data = crawler.info(ticker)
+    >>> print(f"기업 정보: {data}")
     >>> 
-    >>> # 정기보고서 재무정보 | 단일회사 주요계정 조회
-    >>> api_type = "단일회사 주요계정"
-    >>> corp_name = crawler.fetch_corp_name(corp_code)
-    >>> data = crawler.finance(corp_code, last_year, api_type=api_type)
-    >>> list = data.get("list", [])
-    >>> print(pd.DataFrame(list))
+    >>> # 일별 시세 조회
+    >>> start_date='2025-12-01'
+    >>> end_date='2025-12-31'
+    >>> data = crawler.market(ticker, start_date=start_date, end_date=end_date)
+    >>> print(data)
     >>> 
-    >>> # 정기보고서 주요정보 | 증자(감자) 현황
-    >>> year = "2024"
-    >>> quarter = 4
-    >>> api_no = 0 # 증자(감자) 현황
-    >>> api_key, data = crawler.reports(corp_code, year=year, quarter=quarter, api_no=api_no)
-    >>> list = data.get("list", [])
-    >>> print(pd.DataFrame(list))
+    >>> # 배당 조회
+    >>> ticker = "AAPL"
+    >>> data = crawler.dividends(ticker=ticker)
+    >>> print(data)
     >>> 
-    >>> # 지분공시 종합정보 | 대량보유 상황보고 현황
-    >>> api_no = 0 # 대량보유 상황보고 현황
-    >>> api_key, data = crawler.ownership(corp_code, api_no=api_no)
-    >>> list = data.get("list", [])
-    >>> print(pd.DataFrame(list))
+    >>> # Yahoo 뉴스 검색
+    >>> print(f"\nYahoo 뉴스 검색: {ticker}")
+    >>> data = crawler.news(query=ticker, max_articles=10)
+    >>> print(data)
     >>> 
-    >>> # 주요사항보고서 주요정보 | 자산양수도(기타), 풋백옵션 현황
-    >>> corp_code = "00409681"
-    >>> api_no = 0 # 자산양수도(기타), 풋백옵션 현황
-    >>> api_key, data = crawler.material_facts(corp_code, start_date="20190101", end_date="20251231", api_no=api_no)
-    >>> list = data.get("list", [])
-    >>> print(pd.DataFrame(list))
+    >>> # Yahoo 재무제표
+    >>> print(f"\nYahoo 재무제표 손익계산서 검색: {ticker}")
+    >>> data = crawler.fundamentals(ticker)
+    >>> print(data)
     >>> 
-    >>> # 증권신고서 주요정보 | 증자(감자) 현황
-    >>> corp_code = "00106395"
-    >>> api_no = 0 # 증자(감자) 현황
-    >>> api_key, data = crawler.registration(corp_code, start_date="20190101", end_date="20251231", api_no=api_no)
-    >>> list = data.get("list", [])
-    >>> print(pd.DataFrame(list))
+    >>> # Yahoo 재무제표 (분기)
+    >>> print(f"\nYahoo 재무제표 손익계산서 (분기) 검색: {ticker}")
+    >>> data = crawler.quarterly_fundamentals(ticker)
+    >>> print(data)
+    >>> 
+    >>> # 재무상태표 (연간)
+    >>> print(f"\nYahoo 재무제표 재무상태표 검색: {ticker}")
+    >>> data = crawler.balance_sheet(ticker)
+    >>> print(data)
+    >>> 
+    >>> # 재무상태표 (분기)
+    >>> print(f"\nYahoo 재무제표 재무상태표 (분기) 검색: {ticker}")
+    >>> data = crawler.quarterly_balance_sheet(ticker)
+    >>> print(data)
+    >>> 
+    >>> # 현금흐름표 (연간)
+    >>> print(f"\nYahoo 재무제표 현금흐름표 검색: {ticker}")
+    >>> data = crawler.cash_flow(ticker)
+    >>> print(data)
+    >>> 
+    >>> # 현금흐름표 (분기)
+    >>> print(f"\nYahoo 재무제표 현금흐름표 (분기) 검색: {ticker}")
+    >>> data = crawler.quarterly_cash_flow(ticker)
+    >>> print(data)
 
-Supported Filings:
-    - DART의 기업코드을 조회
-    - 정기보고서 재무정보
-    - 정기보고서 주요정보
-    - 지분공시 종합정보
-    - 주요사항보고서 주요정보
-    - 증권신고서 주요정보
+Supported Cases:
+    - 기업 정보 조회
+    - 일별 시세 조회
+    - 배당 조회
+    - 뉴스 조회
+    - 재무제표 조회
 
 Note:
-    OpenDart에서 API Key를 사용하세요.
+    Yahoo에서 User-Agent를 사용하세요.
 """
 
 __version__ = "0.1.0"
@@ -74,7 +84,6 @@ from .client import YahooClient
 #)
 
 from .parsers import (
-    YahooDisclosureParser,
     YahooInfoParser,
     YahooMarketParser,
     YahooNewsParser,
@@ -90,7 +99,6 @@ __all__ = [
     #"DartConfig",
     
     # 파서
-    "YahooDisclosureParser",
     "YahooInfoParser",
     "YahooMarketParser",
     "YahooNewsParser",

@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 
 from ..client import YahooClient
 from ..utils import (
-    _QUERY1_URL_,
     _ROOT_URL_,
-    _BASE_URL_,
+    _QUERY1_URL_,
+    _QUERY2_URL_,
     _QUOTE_SUMMARY_URL_,
     _ADDITIONAL_URL_,
     _CRUMB_URL_,
@@ -53,7 +53,7 @@ class YahooInfoParser:
             "symbol": ticker
         }
 
-        if _BASE_URL_ in info_url:
+        if _QUERY2_URL_ in info_url:
             params["crumb"] = self._fetch_crumb()
 
         response = self.client._get(info_url, params=params)

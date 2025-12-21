@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from ..client import YahooClient
 from ..utils import (
     _ROOT_URL_,
-    _BASE_URL_,
+    _QUERY2_URL_,
     _QUOTE_SUMMARY_URL_,
     _NEWS_URL_
 )
@@ -95,10 +95,10 @@ class YahooNewsParser:
         """Yahoo Finance에서 requests를 사용해서 뉴스 목록 크롤링"""
 
         params = { 
-            "queryRef": query_ref, 
-            "serviceKey": "ncp_fin" 
+            "queryRef": query_ref,
+            "serviceKey": "ncp_fin"
         }
-        
+
         payload = {
             "serviceConfig": {
                 "snippetCount": max_articles,

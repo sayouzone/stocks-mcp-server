@@ -23,8 +23,8 @@ def demo_info(crawler: YahooCrawler, ticker: str):
     print(f"Yahoo 주요 시세 조회 - {ticker}")
     print('='*60)
 
-    # 정보 데모
-    print(f"\nYahoo 정보 조회 ({ticker})")
+    # 기업 정보 조회
+    print(f"\nYahoo 기업 정보 조회 ({ticker})")
     data = crawler.info(ticker)
     print(data)
 
@@ -35,7 +35,7 @@ def demo_market(crawler: YahooCrawler, ticker: str):
     print(f"Yahoo 주요 시세 조회 - {ticker}")
     print('='*60)
 
-    # 일별 시세 데모
+    # 일별 시세 조회
     start_date='2025-12-01'
     end_date='2025-12-31'
     print(f"\nYahoo 일별 시세 조회 ({ticker}) {start_date} ~ {end_date}")

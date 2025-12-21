@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 
 from ..client import YahooClient
 from ..utils import (
-    _QUERY1_URL_,
     _ROOT_URL_,
-    _BASE_URL_,
+    _QUERY1_URL_,
+    _QUERY2_URL_,
     _QUOTE_SUMMARY_URL_,
     _FUNDAMENTALS_TIMESERIES_URL_,
     fundamentals_keys
