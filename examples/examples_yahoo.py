@@ -41,6 +41,11 @@ def demo_market(crawler: YahooCrawler, ticker: str):
     data = crawler.market(ticker, start_date=start_date, end_date=end_date)
     print(data)
 
+    # 배당 조회
+    print(f"\nYahoo 배당 조회 ({ticker})")
+    data = crawler.dividends(ticker="AAPL")
+    print(data)
+
 def demo_news(crawler: YahooCrawler, ticker: str):
     """Yahoo 뉴스 조회 데모"""
     print(f"\n{'='*60}")
@@ -57,6 +62,48 @@ def demo_news(crawler: YahooCrawler, ticker: str):
     #for item in data:
     #    print(item)
 
+def demo_financials(crawler: YahooCrawler, ticker: str):
+    """Yahoo 재무제표 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"Yahoo 재무제표 조회 - {ticker}")
+    print('='*60)
+
+    # Yahoo 재무제표
+    print(f"\nYahoo 재무제표 손익계산서 검색: {ticker}")
+
+    data = crawler.fundamentals(ticker)
+    print(data)
+
+    # Yahoo 재무제표 (분기)
+    print(f"\nYahoo 재무제표 손익계산서 (분기) 검색: {ticker}")
+
+    data = crawler.quarterly_fundamentals(ticker)
+    print(data)
+
+    # 재무상태표 (연간)
+    print(f"\nYahoo 재무제표 재무상태표 검색: {ticker}")
+
+    data = crawler.balance_sheet(ticker)
+    print(data)
+
+    # 재무상태표 (분기)
+    print(f"\nYahoo 재무제표 재무상태표 (분기) 검색: {ticker}")
+
+    data = crawler.quarterly_balance_sheet(ticker)
+    print(data)
+
+    # 현금흐름표 (연간)
+    print(f"\nYahoo 재무제표 현금흐름표 검색: {ticker}")
+
+    data = crawler.cash_flow(ticker)
+    print(data)
+
+    # 현금흐름표 (분기)
+    print(f"\nYahoo 재무제표 현금흐름표 (분기) 검색: {ticker}")
+
+    data = crawler.quarterly_cash_flow(ticker)
+    print(data)
+
 def main(ticker: str):
     """메인 데모 실행"""
     
@@ -69,6 +116,7 @@ def main(ticker: str):
     #demo_info(crawler, ticker)
     demo_market(crawler, ticker)
     #demo_news(crawler, ticker)
+    #demo_financials(crawler, ticker)
     
     print("\n" + "="*60)
     print("Demo completed!")

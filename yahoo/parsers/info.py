@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 class YahooInfoParser:
     """
-    Yahoo Finance API 파싱 클래스
+    Yahoo Finance Info 파싱 클래스
+
+    https://github.com/ranaroussi/yfinance/blob/main/yfinance/scrapers/quote.py
     """
 
     MODULES = [

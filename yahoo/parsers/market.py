@@ -12,9 +12,9 @@ from .info import YahooInfoParser
 
 class YahooMarketParser:
     """
-    Yahoo Finance API 파싱 클래스
-    
-    뉴스:
+    Yahoo Finance Market Data 파싱 클래스
+
+    https://github.com/ranaroussi/yfinance/blob/main/yfinance/scrapers/history.py
     """
 
     def __init__(self, client: YahooClient):
@@ -22,21 +22,20 @@ class YahooMarketParser:
 
     def fetch(self, ticker: str, start_date: str | None = None, end_date: str | None = None) -> pd.DataFrame:
         """
-        Yahoo Finance로부터 시세 정보를 가져와서 프론트엔드 형식에 맞게 정제하여 반환합니다.
+        Yahoo Finance로부터 시세 정보를 가져와서 정제하여 반환합니다.
 
         Args:
             ticker (str): 티커 심볼
             start_date (str | None, optional): 시작 날짜. Defaults to None.
             end_date (str | None, optional): 종료 날짜. Defaults to None.
         Returns:
-            pd.DataFrame: 프론트엔드 형식에 맞게 정제된 OHLCV(open, high, low, close, volume) 데이터
+            pd.DataFrame: 정제된 OHLCV(open, high, low, close, volume) 데이터
         """
         if not ticker:
             raise ValueError("Ticker symbol must be provided.")
 
         info_parser = YahooInfoParser(self.client)
-        ticker_info = info_parser.fetch(ticker)
-        #ticker_info = yf.Ticker(ticker).info
+        ticker_info = info_parser.fetch(ticker)\
 
         # 1. 날짜 설정
         if not end_date:
@@ -50,16 +49,16 @@ class YahooMarketParser:
             'period2': int(datetime.strptime(end_date, '%Y-%m-%d').timestamp()),
             'interval': '1d',
             'events': 'div,splits,capitalGains',
-            'includeAdjustedClose': 'true',
+            #'includeAdjustedClose': 'true',
         }
 
-        # 2. yfinance에서 데이터 가져오기
+        # 2. Yahoo Finance에서 데이터 가져오기
         response = self.client._get(url, params=params)
         data = response.json()
-        print(data)
+        #print(data)
 
         if not data or 'chart' not in data or 'result' not in data['chart'] or not data['chart']['result']:
-            return
+            return pd.DataFrame()
 
         result = data.get('chart', {}).get('result', [])
         if not result:
@@ -68,14 +67,18 @@ class YahooMarketParser:
         chart = result[0]
         
         # Metadata 추출
-        metadata = chart.get('meta', {})
+        history_metadata = chart.get('meta', {})
+        inst_type = history_metadata.get("instrumentType")
+        is_mutualfund_or_etf = inst_type in ["MUTUALFUND", "ETF"]
+        tz_exchange = history_metadata.get("exchangeTimezoneName")
+        currency = history_metadata.get("currency")
 
         # Timestamp 추출
         timestamps = chart.get('timestamp', [])
         
         # Quote, Adjusted Close 추출
         quote = chart.get('indicators', {}).get("quote", [{}])[0]
-        adjclose = chart.get('indicators', {}).get("adjclose", [{}])[0]
+        #adjclose = chart.get('indicators', {}).get("adjclose", [{}])[0]
 
         hist_df = pd.DataFrame({
             "date": pd.to_datetime(timestamps, unit='s'),
@@ -84,7 +87,7 @@ class YahooMarketParser:
             "low": quote.get("low", [0]),
             "close": quote.get("close", [0]),
             "volume": quote.get("volume", [0]),
-            "adjclose": adjclose.get("adjclose", [0]),   
+            #"adjclose": adjclose.get("adjclose", [0]),   
         })
         #print(hist_df)
 
@@ -102,7 +105,35 @@ class YahooMarketParser:
         # 정수로 변환
         hist_df['volume'] = hist_df['volume'].astype('int64')
 
+        dividends, splits, capital_gains = self._events(chart)
+        print(dividends)
+        print(splits)
+        print(capital_gains)
+
+        if not dividends.empty:
+            hist_df = self._merge_dfs(hist_df, dividends)
+        if not splits.empty:
+            hist_df = self._merge_dfs(hist_df, splits)
+        if not capital_gains.empty:
+            hist_df = self._merge_dfs(hist_df, capital_gains)
+
+        print(hist_df)
+
         return hist_df
+    
+    def dividends(self, ticker: str):
+        """
+        Yahoo Finance로부터 배당 정보를 반환합니다.
+        """
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        start_date = (datetime.now() - timedelta(days=(99*365))).strftime('%Y-%m-%d')
+        df =self.fetch(ticker, start_date=start_date, end_date=end_date)
+        if "Dividends" in df:
+            dividends = df["Dividends"]
+            return dividends[dividends != 0]
+
+        return pd.DataFrame()
+        
 
     def fetch_with_yfinance(self, ticker: str, start_date: str | None = None, end_date: str | None = None) -> pd.DataFrame:
         """
@@ -144,6 +175,110 @@ class YahooMarketParser:
         hist_df['volume'] = hist_df['volume'].astype('int64')
 
         return hist_df
+
+    def _events(self, data):
+        dividends = None
+        capital_gains = None
+        splits = None
+
+        if 'events' in data:
+            events = data['events']
+            if 'dividends' in events: 
+                dividends = pd.DataFrame(
+                    data=list(events['dividends'].values())
+                )
+                dividends.set_index("date", inplace=True)
+                dividends.index = pd.to_datetime(dividends.index, unit='s')
+                dividends.sort_index(inplace=True)
+                dividends = dividends.rename(columns={'amount': 'Dividends'})
+
+            if 'capitalGains' in events:
+                capital_gains = pd.DataFrame(
+                    data=list(events['capitalGains'].values())
+                )
+                capital_gains.set_index("date", inplace=True)
+                capital_gains.index = pd.to_datetime(capital_gains.index, unit='s')
+                capital_gains.sort_index(inplace=True)
+                capital_gains.columns = ["Capital Gains"]
+
+            if 'splits' in events:
+                splits = pd.DataFrame(
+                    data=list(events['splits'].values())
+                )
+                splits.set_index("date", inplace=True)
+                splits.index = pd.to_datetime(splits.index, unit='s')
+                splits.sort_index(inplace=True)
+                splits["Stock Splits"] = splits["numerator"] / splits["denominator"]
+                splits = splits[["Stock Splits"]]
+
+        if dividends is None:
+            dividends = pd.DataFrame(
+                columns=["Dividends"], index=pd.DatetimeIndex([]))
+        if capital_gains is None:
+            capital_gains = pd.DataFrame(
+                columns=["Capital Gains"], index=pd.DatetimeIndex([]))
+        if splits is None:
+            splits = pd.DataFrame(
+                columns=["Stock Splits"], index=pd.DatetimeIndex([]))
+
+        return dividends, capital_gains, splits
+
+    def _merge_dfs(self, df: pd.DataFrame, df_sub: pd.DataFrame) -> pd.DataFrame:
+        """
+        OHLCV 데이터와 배당금 데이터를 병합
+        
+        Args:
+            df: OHLCV DataFrame (date, open, high, low, close, volume)
+            df_sub: 배당금 DataFrame (date index, Dividends column)
+        
+        Returns:
+            병합된 DataFrame
+        """
+        if df_sub.empty:
+            raise Exception("No data to merge")
+        
+        if df.empty:
+            raise df
+
+        columns = [col for col in df_sub.columns if col not in df]
+        if len(columns) > 1:
+            raise ValueError("df_sub must have only one column.")
+        data_column = columns[0]
+
+        #df = df.sort_index()
+        #indices = np.searchsorted(np.append(df.index, df.index[-1] + timedelta(days=1)), df_sub.index, side='right')
+        #indices -= 1  # Convert from [[i-1], [i]) to [[i], [i+1])
+        
+        # df의 date를 datetime으로 변환
+        df = df.copy()
+        df["date"] = pd.to_datetime(df["date"])
+        
+        # df_div 처리
+        df_sub2 = df_sub.copy()
+        columns = df_sub.columns.tolist()
+        print('columns', columns, type(columns))
+
+        # 인덱스가 datetime인 경우 리셋
+        if isinstance(df_sub2.index, pd.DatetimeIndex):
+            df_sub2 = df_sub2.reset_index()
+            columns.insert(0, "date")
+            print('columns', columns)
+            df_sub2.columns = columns
+        
+        # 날짜만 추출 (시간 제거)
+        df_sub2["date"] = pd.to_datetime(df_sub2["date"]).dt.normalize()
+        
+        # 같은 날짜에 여러 배당이 있을 경우 합산
+        #df_sub2 = df_sub2.groupby("date")["dividends"].sum().reset_index()
+        
+        # 병합 (left join - OHLCV 기준)
+        df_merged = df.merge(df_sub2, on="date", how="left")
+        
+        # 배당금 없는 날은 0으로 채우기
+        for col in columns:
+            df_merged[col] = df_merged[col].fillna(0)
+        
+        return df_merged
 
     def _format_response_from_df(self, df: pd.DataFrame, ticker_info: dict, ticker: str):
         """DataFrame을 받아 프론트엔드 응답 형식으로 변환하는 헬퍼 함수"""
@@ -208,131 +343,5 @@ class YahooMarketParser:
             if isinstance(item['date'], pd.Timestamp) or isinstance(item['date'], datetime.date):
                 item['date'] = pd.to_datetime(item['date']).strftime('%Y-%m-%d')
             item['volume'] = int(item['volume'])
-
-        return result
-
-class Fundamentals:
-    """
-    MCP 도구 기반 재무제표 수집 클래스 (캐싱 기능 포함)
-
-    기존 복잡한 분석 로직을 제거하고, 재무제표 3종만 수집하는 단순하고 명확한 구조로 리팩토링.
-    GCS 캐싱 기능은 유지하여 API 호출 비용을 최소화.
-    """
-    GCS_CACHE_PREFIX = "yahoofinance_fundamentals_cache"
-
-    def __init__(self):
-        self.gcs_manager = GCSManager()
-
-    def fundamentals(
-        self,
-        stock: str | None = None,
-        query: str | None = None,
-        overwrite: bool = False,
-        attribute_name_str: str | None = None
-    ) -> dict[str, object]:
-        """
-        Yahoo Finance에서 재무제표 3종을 수집합니다.
-
-        Args:
-            stock: 종목 코드 또는 회사명
-            query: stock의 별칭 (stock이 없으면 사용)
-            overwrite: 캐시를 무시하고 새로 가져올지 여부
-            attribute_name_str: 특정 attribute만 가져올 경우 (예: 'income_stmt', 'balance_sheet')
-
-        Returns:
-            dict: {
-                "ticker": str,
-                "country": str,
-                "balance_sheet": str | None,  # JSON 문자열
-                "income_statement": str | None,  # JSON 문자열
-                "cash_flow": str | None  # JSON 문자열
-            }
-        """
-        identifier = stock or query
-        if not identifier:
-            raise ValueError("Must provide either 'stock' or 'query'.")
-
-        ticker_symbol = find.get_ticker(identifier) or identifier.upper()
-
-        # --- 특정 attribute만 요청하는 경우 (기존 호환성 유지) ---
-        if attribute_name_str:
-            ticker = yf.Ticker(ticker_symbol)
-            if hasattr(ticker, attribute_name_str):
-                data = getattr(ticker, attribute_name_str)
-                if isinstance(data, pd.DataFrame):
-                    return json.loads(data.to_json(orient="records", date_format="iso"))
-                if isinstance(data, pd.Series):
-                    return data.to_dict()
-                if isinstance(data, dict):
-                    return data
-                return data
-            else:
-                raise ValueError(f"'{attribute_name_str}' is not a valid yfinance Ticker attribute.")
-
-        # --- 재무제표 3종 수집 (MCP 도구 버전 로직) ---
-        gcs_blob_name = f"{self.GCS_CACHE_PREFIX}/{ticker_symbol}.json"
-
-        # yfinance Ticker 객체 생성
-        ticker = yf.Ticker(ticker_symbol)
-
-        # 국가 정보 추론
-        country = "Unknown"
-        try:
-            info = ticker.info or {}
-            country = info.get("country") or "Unknown"
-        except Exception as e:
-            logging.warning(f"Failed to fetch ticker info for {ticker_symbol}: {e}")
-
-        # 한국 종목 코드 패턴 확인
-        if ".KS" in ticker_symbol or ".KQ" in ticker_symbol:
-            country = "KR"
-        elif ticker_symbol.replace(".KS", "").replace(".KQ", "").isdigit() and len(ticker_symbol.replace(".KS", "").replace(".KQ", "")) == 6:
-            country = "KR"
-
-        # 재무제표 3종 수집
-        result = {
-            "ticker": ticker_symbol,
-            "country": country,
-            "balance_sheet": None,
-            "income_statement": None,
-            "cash_flow": None
-        }
-
-        # 1. Balance Sheet (재무상태표)
-        try:
-            balance_sheet = ticker.balance_sheet
-            if balance_sheet is not None and not balance_sheet.empty:
-                result["balance_sheet"] = balance_sheet.to_json(orient="columns", date_format="iso")
-        except Exception as e:
-            logging.warning(f"Failed to fetch balance_sheet for {ticker_symbol}: {e}")
-
-        # 2. Income Statement (손익계산서)
-        try:
-            income_stmt = ticker.income_stmt
-            if income_stmt is not None and not income_stmt.empty:
-                result["income_statement"] = income_stmt.to_json(orient="columns", date_format="iso")
-        except Exception as e:
-            logging.warning(f"Failed to fetch income_stmt for {ticker_symbol}: {e}")
-
-        # 3. Cash Flow (현금흐름표)
-        try:
-            cashflow = ticker.cashflow
-            if cashflow is not None and not cashflow.empty:
-                result["cash_flow"] = cashflow.to_json(orient="columns", date_format="iso")
-        except Exception as e:
-            logging.warning(f"Failed to fetch cashflow for {ticker_symbol}: {e}")
-
-        # GCS에 캐시 저장
-        try:
-            payload_json = json.dumps(result, ensure_ascii=False, indent=2)
-            self.gcs_manager.upload_file(
-                source_file=payload_json,
-                destination_blob_name=gcs_blob_name,
-                encoding="utf-8",
-                content_type="application/json; charset=utf-8",
-            )
-            logging.info(f"Successfully cached fundamentals for {ticker_symbol} to GCS: {gcs_blob_name}")
-        except Exception as e:
-            logging.error(f"GCS cache write failed for {ticker_symbol}: {e}")
 
         return result
