@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from yahoo import YahooCrawler
 
-def demo_info(crawler: YahooCrawler, ticker: str):
+def demo_quote(crawler: YahooCrawler, ticker: str):
     """Yahoo 주요 시세 조회 데모"""
 
     print(f"\n{'='*60}")
@@ -26,6 +26,41 @@ def demo_info(crawler: YahooCrawler, ticker: str):
     # 기업 정보 조회
     print(f"\nYahoo 기업 정보 조회 ({ticker})")
     data = crawler.info(ticker)
+    print(data)
+
+    # 기업 캘린더 조회
+    print(f"\nYahoo 기업 캘린더 조회 ({ticker})")
+    data = crawler.calendar(ticker)
+    print(data)
+
+    # 기업 이익공시일 (Earning Calendar) 조회
+    ticker = "AAPL"
+    print(f"\nYahoo 기업 이익공시일 (Earning Calendar) 조회 ({ticker})")
+    data = crawler.earning_calendar(ticker)
+    print(data)
+
+    # 기업 매출 추정치 (Revenue Estimate) 조회
+    ticker = "AAPL"
+    print(f"\nYahoo 기업 매출 추정치 (Revenue Estimate) 조회 ({ticker})")
+    data = crawler.revenue_estimate(ticker)
+    print(data)
+
+    # 기업 수익 추정치 (Earning Estimate) 조회
+    ticker = "AAPL"
+    print(f"\nYahoo 기업 수익 추정치 (Earning Estimate) 조회 ({ticker})")
+    data = crawler.earnings_estimate(ticker)
+    print(data)
+
+    # 기업 EPS 추세 (EPS Trend) 조회
+    ticker = "AAPL"
+    print(f"\nYahoo 기업 EPS 추세 (EPS Trend) 조회 ({ticker})")
+    data = crawler.eps_trend(ticker)
+    print(data)
+
+    # 기업 EPS 수정치 (EPS Revisions) 조회
+    ticker = "AAPL"
+    print(f"\nYahoo 기업 EPS 수정치 (EPS Revisions) 조회 ({ticker})")
+    data = crawler.eps_revisions(ticker)
     print(data)
 
 def demo_market(crawler: YahooCrawler, ticker: str):
@@ -40,7 +75,7 @@ def demo_market(crawler: YahooCrawler, ticker: str):
     end_date='2025-12-31'
     print(f"\nYahoo 일별 시세 조회 ({ticker}) {start_date} ~ {end_date}")
 
-    data = crawler.market(ticker, start_date=start_date, end_date=end_date)
+    data = crawler.chart(ticker, start_date=start_date, end_date=end_date)
     print(data)
 
     # 배당 조회
@@ -80,36 +115,36 @@ def demo_financials(crawler: YahooCrawler, ticker: str):
     print('='*60)
 
     # Yahoo 재무제표
-    print(f"\nYahoo 재무제표 손익계산서 검색: {ticker}")
-    data = crawler.fundamentals(ticker)
+    print(f"\nYahoo 재무제표 손익계산서 (Income Statement) 검색: {ticker}")
+    data = crawler.income_statement(ticker)
     print(data)
 
     # Yahoo 재무제표 (분기)
-    print(f"\nYahoo 재무제표 손익계산서 (분기) 검색: {ticker}")
+    print(f"\nYahoo 재무제표 손익계산서 (Income Statement) (분기) 검색: {ticker}")
 
-    data = crawler.quarterly_fundamentals(ticker)
+    data = crawler.quarterly_income_statement(ticker)
     print(data)
 
     # 재무상태표 (연간)
-    print(f"\nYahoo 재무제표 재무상태표 검색: {ticker}")
+    print(f"\nYahoo 재무제표 재무상태표 (Balance Sheet) 검색: {ticker}")
 
     data = crawler.balance_sheet(ticker)
     print(data)
 
     # 재무상태표 (분기)
-    print(f"\nYahoo 재무제표 재무상태표 (분기) 검색: {ticker}")
+    print(f"\nYahoo 재무제표 재무상태표 (Balance Sheet) (분기) 검색: {ticker}")
 
     data = crawler.quarterly_balance_sheet(ticker)
     print(data)
 
     # 현금흐름표 (연간)
-    print(f"\nYahoo 재무제표 현금흐름표 검색: {ticker}")
+    print(f"\nYahoo 재무제표 현금흐름표 (Cash Flow) 검색: {ticker}")
 
     data = crawler.cash_flow(ticker)
     print(data)
 
     # 현금흐름표 (분기)
-    print(f"\nYahoo 재무제표 현금흐름표 (분기) 검색: {ticker}")
+    print(f"\nYahoo 재무제표 현금흐름표 (Cash Flow) (분기) 검색: {ticker}")
 
     data = crawler.quarterly_cash_flow(ticker)
     print(data)
@@ -123,10 +158,10 @@ def main(ticker: str):
     crawler = YahooCrawler()
 
     # 각 파일링 타입 데모
-    demo_info(crawler, ticker)
+    #demo_quote(crawler, ticker)
     demo_market(crawler, ticker)
-    demo_news(crawler, ticker)
-    demo_financials(crawler, ticker)
+    #demo_news(crawler, ticker)
+    #demo_financials(crawler, ticker)
     
     print("\n" + "="*60)
     print("Demo completed!")

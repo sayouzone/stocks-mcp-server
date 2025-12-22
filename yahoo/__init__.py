@@ -84,8 +84,9 @@ from .client import YahooClient
 #)
 
 from .parsers import (
-    YahooInfoParser,
-    YahooMarketParser,
+    YahooAnalysisParser,
+    YahooQuoteParser,
+    YahooChartParser,
     YahooNewsParser,
     YahooFundamentalsParser,
 )
@@ -99,8 +100,9 @@ __all__ = [
     #"DartConfig",
     
     # 파서
-    "YahooInfoParser",
-    "YahooMarketParser",
+    "YahooAnalysisParser",
+    "YahooQuoteParser",
+    "YahooChartParser",
     "YahooNewsParser",
     "YahooFundamentalsParser",
 ]

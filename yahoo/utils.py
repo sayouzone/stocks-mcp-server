@@ -4,8 +4,8 @@ _ROOT_URL_ = 'https://finance.yahoo.com'
 
 _NEWS_URL_ = f"{_ROOT_URL_}/xhr/ncp"
 _QUOTE_SUMMARY_URL_ = f"{_QUERY2_URL_}/v10/finance/quoteSummary"
-_ADDITIONAL_URL_ = f"{_QUERY1_URL_}/v7/finance/quote"
-_FINANCIAL_CHART_URL_ = f"{_QUERY2_URL_}/v8/finance/chart"
+_QUOTE_URL_ = f"{_QUERY1_URL_}/v7/finance/quote"
+_CHART_URL_ = f"{_QUERY2_URL_}/v8/finance/chart"
 _FUNDAMENTALS_TIMESERIES_URL_ = f"{_QUERY2_URL_}/ws/fundamentals-timeseries/v1/finance/timeseries"
 
 _CRUMB_URL_ = f"{_QUERY2_URL_}/v1/test/getcrumb"

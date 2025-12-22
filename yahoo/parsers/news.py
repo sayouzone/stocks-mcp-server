@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 
 from ..client import YahooClient
 from ..utils import (
-    _ROOT_URL_,
     _QUERY2_URL_,
     _QUOTE_SUMMARY_URL_,
     _NEWS_URL_
