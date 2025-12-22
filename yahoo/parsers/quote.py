@@ -143,6 +143,67 @@ class YahooQuoteParser:
         # 결과 포맷팅
         return f"{dt.strftime('%Y-%m-%d %H:%M:%S')}{tz_offset}"
 
+    def fetch_recommendation(self, ticker: str, as_dict: bool = False):
+        """
+        Yahoo Finance Recommendation API 호출
+        
+        Args:
+            ticker: 종목 심볼
+        """
+        # API 호출
+        try:
+            response = self.fetch_quote(ticker, modules=["recommendationTrend"])
+
+            if response is None:
+                return pd.DataFrame()
+
+            data = response.get("quoteSummary", {}).get("result", [{}])[0].get("recommendationTrend", {}).get("trend", [])
+
+            if as_dict:
+                return data.to_dict()
+
+            return pd.DataFrame(data)
+        except Exception as e:
+            logger.error(f"Failed to fetch recommendation for {ticker}: {e}")
+            return pd.DataFrame()
+
+    def fetch_quote(self, ticker: str, modules: list[str]):
+        """
+        Quote Summary API 호출
+        
+        Args:
+            ticker: 종목 심볼
+            modules: 요청할 모듈 목록
+        """
+        if not modules:
+            return {}
+
+        valid_modules = [module for module in modules if module in quote_summary_valid_modules]
+
+        if not valid_modules:
+            logger.warning(f"No valid modules: {modules}")
+            return {}
+
+        url = f"{_QUOTE_SUMMARY_URL_}/{ticker}"
+        params = {
+            "modules": ",".join(valid_modules),
+            "corsDomain": "finance.yahoo.com",
+            "formatted": "false",
+            "symbol": ticker
+        }
+
+        # 크럼 인증 추가
+        if _QUERY2_URL_ in url:
+            params["crumb"] = self.fetch_crumb()
+
+        # API 호출
+        try:
+            response = self.client._get(url, params=params)
+            return response.json()
+        except Exception as e:
+            logger.error(f"Failed to fetch quote summary for {ticker}: {e}")
+            return {}
+
     def fetch_earning_calendar(self, ticker: str, limit: int = 12, offset: int = 0):
         """
         Yahoo Finance Earning Calendar 획득

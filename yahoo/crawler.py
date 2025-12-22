@@ -88,3 +88,11 @@ class YahooCrawler:
     def earning_calendar(self, ticker: str):
         """기업 이익공시일 (Earning Calendar) 조회"""
         return self._quote_parser.fetch_earning_calendar(ticker, limit=100, offset=0)
+
+    def recommendation(self, ticker: str):
+        """기업 추천도움 (Recommendation) 조회"""
+        return self._quote_parser.fetch_recommendation(ticker)
+
+    def recommendation_summary(self, ticker: str):
+        """기업 추천도움 (Recommendation) 조회"""
+        return self._quote_parser.fetch_recommendation(ticker, as_dict=False)

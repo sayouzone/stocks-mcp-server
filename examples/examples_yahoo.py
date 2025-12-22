@@ -39,6 +39,12 @@ def demo_quote(crawler: YahooCrawler, ticker: str):
     data = crawler.earning_calendar(ticker)
     print(data)
 
+    # 기업 추천도움 (Recommendation) 조회
+    ticker = "AAPL"
+    print(f"\nYahoo 기업 추천도움 (Recommendation) 조회 ({ticker})")
+    data = crawler.recommendation(ticker)
+    print(data)
+
     # 기업 매출 추정치 (Revenue Estimate) 조회
     ticker = "AAPL"
     print(f"\nYahoo 기업 매출 추정치 (Revenue Estimate) 조회 ({ticker})")
@@ -92,7 +98,7 @@ def demo_market(crawler: YahooCrawler, ticker: str):
 
     # 주식 분할 조회
     ticker = "AAPL"
-    print(f"\nYahoo 배당 조회 ({ticker})")
+    print(f"\nYahoo 주식 분할 조회 ({ticker})")
     data = crawler.splits(ticker=ticker)
     print(data)
 
@@ -158,8 +164,8 @@ def main(ticker: str):
     crawler = YahooCrawler()
 
     # 각 파일링 타입 데모
-    #demo_quote(crawler, ticker)
-    demo_market(crawler, ticker)
+    demo_quote(crawler, ticker)
+    #demo_market(crawler, ticker)
     #demo_news(crawler, ticker)
     #demo_financials(crawler, ticker)
     

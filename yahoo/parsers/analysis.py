@@ -64,7 +64,7 @@ class YahooAnalysisParser:
                 'Revenue Average': int,
             }
         """
-        result = self._fetch_quote(ticker, modules=["calendarEvents"])
+        result = self.quote_parser.fetch_quote(ticker, modules=["calendarEvents"])
         events = self._extract_module(result, "calendarEvents")
 
         if not events:
@@ -144,7 +144,7 @@ class YahooAnalysisParser:
             ticker: 종목 심볼
             key: 'earningsEstimate', 'revenueEstimate', 'epsTrend', 'epsRevisions'
         """
-        result = self._fetch_quote(ticker, modules=["earningsTrend"])
+        result = self.quote_parser.fetch_quote(ticker, modules=["earningsTrend"])
         earnings_trend = self._extract_module(result, "earningsTrend")
 
         if not earnings_trend:
@@ -168,43 +168,6 @@ class YahooAnalysisParser:
             return pd.DataFrame()
 
         return pd.DataFrame(data).set_index('period')
-
-    def _fetch_quote(self, ticker: str, modules: list[str]):
-        """
-        Quote Summary API 호출
-        
-        Args:
-            ticker: 종목 심볼
-            modules: 요청할 모듈 목록
-        """
-        if not modules:
-            return {}
-
-        valid_modules = [module for module in modules if module in quote_summary_valid_modules]
-
-        if not valid_modules:
-            logger.warning(f"No valid modules: {modules}")
-            return {}
-
-        url = f"{_QUOTE_SUMMARY_URL_}/{ticker}"
-        params = {
-            "modules": ",".join(valid_modules),
-            "corsDomain": "finance.yahoo.com",
-            "formatted": "false",
-            "symbol": ticker
-        }
-
-        # 크럼 인증 추가
-        if _QUERY2_URL_ in url:
-            params["crumb"] = self.quote_parser.fetch_crumb()
-
-        # API 호출
-        try:
-            response = self.client._get(url, params=params)
-            return response.json()
-        except Exception as e:
-            logger.error(f"Failed to fetch quote summary for {ticker}: {e}")
-            return {}
     
     def _extract_module(self, result: dict, module_name: str) -> dict:
         """API 응답에서 특정 모듈 데이터 추출"""
