@@ -48,35 +48,50 @@ class YahooChartParser:
         include_events: bool = True,
     ) -> pd.DataFrame:
         """
-        시세 데이터 조회 (OHLCV + 배당/분할)
-        
+        Yahoo Finance로부터 시세 정보를 가져와서 정제하여 반환합니다.
+
         Args:
-            ticker: 종목 심볼
-            start_date: 시작일 (YYYY-MM-DD), 기본값 180일 전
-            end_date: 종료일 (YYYY-MM-DD), 기본값 오늘
-            include_events: 배당/분할 데이터 포함 여부
-        
+            ticker (str): 티커 심볼
+            start_date (str | None, optional): 시작 날짜. Defaults to None.
+            end_date (str | None, optional): 종료 날짜. Defaults to None.
         Returns:
-            DataFrame with columns: date, open, high, low, close, volume, 
-                                   [Dividends, Stock Splits, Capital Gains]
+            pd.DataFrame: 정제된 OHLCV(open, high, low, close, volume) 데이터
         """
         if not ticker:
             raise ValueError("Ticker symbol must be provided.")
 
-        ticker_info = self.quote_parser.fetch(ticker)
-        start_date, end_date = self._normalize_dates(start_date, end_date)
+        quote_parser = YahooQuoteParser(self.client)
+        ticker_info = quote_parser.fetch(ticker)
 
-        # API 호출
-        data = self._fetch_chart_data(ticker, start_date, end_date)
+        # 1. 날짜 설정
+        if not end_date:
+            end_date = datetime.now().strftime('%Y-%m-%d')
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=180)).strftime('%Y-%m-%d')
 
-        if not data:
+        url = f"{_CHART_URL_}/{ticker}"
+        params = {
+            'period1': int(datetime.strptime(start_date, '%Y-%m-%d').timestamp()),
+            'period2': int(datetime.strptime(end_date, '%Y-%m-%d').timestamp()),
+            'interval': '1d',
+            'events': 'div,splits,capitalGains',
+            #'includeAdjustedClose': 'true',
+        }
+
+        # 2. Yahoo Finance에서 데이터 가져오기
+        response = self.client._get(url, params=params)
+        data = response.json()
+        #print(data)
+
+        if not data or 'chart' not in data or 'result' not in data['chart'] or not data['chart']['result']:
             return pd.DataFrame()
 
-        chart = data.get('chart', {}).get('result', [])[0]
-
-        if not chart:
+        result = data.get('chart', {}).get('result', [])
+        if not result:
             return pd.DataFrame()
 
+        chart = result[0]
+        
         # Metadata 추출
         history_metadata = chart.get('meta', {})
         inst_type = history_metadata.get("instrumentType")
@@ -84,17 +99,53 @@ class YahooChartParser:
         tz_exchange = history_metadata.get("exchangeTimezoneName")
         currency = history_metadata.get("currency")
 
-        # OHLCV 파싱
-        df = self._parse_ohlcv(chart)
+        # Timestamp 추출
+        timestamps = chart.get('timestamp', [])
+        
+        # Quote, Adjusted Close 추출
+        quote = chart.get('indicators', {}).get("quote", [{}])[0]
+        #adjclose = chart.get('indicators', {}).get("adjclose", [{}])[0]
 
-        if df.empty:
+        hist_df = pd.DataFrame({
+            "date": pd.to_datetime(timestamps, unit='s'),
+            "open": quote.get("open", [0]),
+            "high": quote.get("high", [0]),
+            "low": quote.get("low", [0]),
+            "close": quote.get("close", [0]),
+            "volume": quote.get("volume", [0]),
+            #"adjclose": adjclose.get("adjclose", [0]),   
+        })
+        #print(hist_df)
+
+        if hist_df.empty:
             return pd.DataFrame()
 
-        # 이벤트 데이터 병합 (배당, 분할, 양도소득)
-        if include_events:
-            df = self._merge_events(df, chart)
+        # 날짜만 추출 (시간 제외)
+        hist_df['date'] = pd.to_datetime(hist_df['date']).dt.date
+        
+        #hist_df.insert(0, "symbol", metadata.get("symbol"))
+        
+        # 소수점 정리
+        for col in ['open', 'high', 'low', 'close']:
+            hist_df[col] = hist_df[col].round(4)
+        # 정수로 변환
+        hist_df['volume'] = hist_df['volume'].astype('int64')
 
-        return df
+        dividends, splits, capital_gains = self._events(chart)
+        print(dividends)
+        print(splits)
+        print(capital_gains)
+
+        if not dividends.empty:
+            hist_df = self._merge_dfs(hist_df, dividends)
+        if not splits.empty:
+            hist_df = self._merge_dfs(hist_df, splits)
+        if not capital_gains.empty:
+            hist_df = self._merge_dfs(hist_df, capital_gains)
+
+        #print(hist_df)
+
+        return hist_df
     
     def dividends(self, ticker: str):
         """
@@ -176,280 +227,178 @@ class YahooChartParser:
 
         return hist_df
 
-    # ==================== Private Methods ====================
-
-    def _normalize_dates(
-        self,
-        start_date: Optional[str],
-        end_date: Optional[str],
-    ) -> tuple[str, str]:
-        """날짜 정규화"""
-        if not end_date:
-            end_date = datetime.now().strftime("%Y-%m-%d")
-        if not start_date:
-            start_date = (datetime.now() - timedelta(days=self.DEFAULT_DAYS)).strftime("%Y-%m-%d")
-        return start_date, end_date
-
-    def _fetch_chart_data(
-        self,
-        ticker: str,
-        start_date: str,
-        end_date: str,
-    ) -> dict:
-        """Chart API 호출"""
-        url = f"{_CHART_URL_}/{ticker}"
-        params = {
-            'period1': int(datetime.strptime(start_date, '%Y-%m-%d').timestamp()),
-            'period2': int(datetime.strptime(end_date, '%Y-%m-%d').timestamp()),
-            'interval': '1d',
-            'events': 'div,splits,capitalGains',
-            #'includeAdjustedClose': 'true',
-        }
-
-        try:
-            response = self.client._get(url, params=params)
-            return response.json()
-        except Exception as e:
-            logger.error(f"Failed to fetch chart data for {ticker}: {e}")
-            return {}
-    
-    def _parse_ohlcv(self, chart: dict) -> pd.DataFrame:
-        """OHLCV 데이터 파싱"""
-        timestamps = chart.get("timestamp", [])
-
-        if not timestamps:
-            return pd.DataFrame()
-        
-        quote = chart.get("indicators", {}).get("quote", [{}])[0]
-        
-        ohlcv_df = pd.DataFrame({
-            "date": pd.to_datetime(timestamps, unit="s").date,
-            "open": quote.get("open"),
-            "high": quote.get("high"),
-            "low": quote.get("low"),
-            "close": quote.get("close"),
-            "volume": quote.get("volume"),
-        })
-
-        # 데이터 정리
-        for col in ["open", "high", "low", "close"]:
-            if col in ohlcv_df.columns:
-                ohlcv_df[col] = pd.to_numeric(ohlcv_df[col], errors="coerce").round(4)
-        
-        if "volume" in ohlcv_df.columns:
-            ohlcv_df["volume"] = pd.to_numeric(ohlcv_df["volume"], errors="coerce").fillna(0).astype("int64")
-
-        return ohlcv_df
-
-    def _merge_events(self, df: pd.DataFrame, chart: dict) -> pd.DataFrame:
-        """이벤트 데이터 (배당, 분할, 양도소득) 병합"""
-        events = chart.get("events", {})
-        
-        # 배당금
-        dividends = self._parse_event(events.get("dividends"), "Dividends", "amount")
-        if not dividends.empty:
-            df = self._merge_event_df(df, dividends)
-
-        # 주식분할
-        splits = self._parse_splits(events.get("splits"))
-        if not splits.empty:
-            df = self._merge_event_df(df, splits)
-
-        # 양도소득
-        capital_gains = self._parse_event(events.get("capitalGains"), "Capital Gains", "amount")
-        if not capital_gains.empty:
-            df = self._merge_event_df(df, capital_gains)
-
+    def _df_tz(df, tz):
+        if df.index.tz in None:
+            df.index = df.index.tz_localize("UTC")
+        df.index = df.index.tz_convert(tz)
         return df
 
-    def _parse_event(
-        self,
-        event_data: Optional[dict],
-        column_name: str,
-        value_key: str,
-    ) -> pd.DataFrame:
-        """이벤트 데이터 파싱 (배당금, 양도소득)"""
-        if not event_data:
-            return pd.DataFrame()
+    def _events(self, data):
+        dividends = None
+        capital_gains = None
+        splits = None
 
-        df = pd.DataFrame(list(event_data.values()))
+        if 'events' in data:
+            events = data['events']
+            if 'dividends' in events: 
+                dividends = pd.DataFrame(
+                    data=list(events['dividends'].values())
+                )
+                dividends.set_index("date", inplace=True)
+                dividends.index = pd.to_datetime(dividends.index, unit='s')
+                dividends.sort_index(inplace=True)
+                dividends = dividends.rename(columns={'amount': 'Dividends'})
+
+            if 'capitalGains' in events:
+                capital_gains = pd.DataFrame(
+                    data=list(events['capitalGains'].values())
+                )
+                capital_gains.set_index("date", inplace=True)
+                capital_gains.index = pd.to_datetime(capital_gains.index, unit='s')
+                capital_gains.sort_index(inplace=True)
+                capital_gains.columns = ["Capital Gains"]
+
+            if 'splits' in events:
+                splits = pd.DataFrame(
+                    data=list(events['splits'].values())
+                )
+                splits.set_index("date", inplace=True)
+                splits.index = pd.to_datetime(splits.index, unit='s')
+                splits.sort_index(inplace=True)
+                splits["Stock Splits"] = splits["numerator"] / splits["denominator"]
+                splits = splits[["Stock Splits"]]
+
+        if dividends is None:
+            dividends = pd.DataFrame(
+                columns=["Dividends"], index=pd.DatetimeIndex([]))
+        if capital_gains is None:
+            capital_gains = pd.DataFrame(
+                columns=["Capital Gains"], index=pd.DatetimeIndex([]))
+        if splits is None:
+            splits = pd.DataFrame(
+                columns=["Stock Splits"], index=pd.DatetimeIndex([]))
+
+        return dividends, capital_gains, splits
+
+    def _merge_dfs(self, df: pd.DataFrame, df_sub: pd.DataFrame) -> pd.DataFrame:
+        """
+        OHLCV 데이터와 배당금 데이터를 병합
         
-        if df.empty or "date" not in df.columns:
-            return pd.DataFrame()
-
-        df["date"] = pd.to_datetime(df["date"], unit="s").dt.normalize()
-        df = df[["date", value_key]].rename(columns={value_key: column_name})
+        Args:
+            df: OHLCV DataFrame (date, open, high, low, close, volume)
+            df_sub: 배당금 DataFrame (date index, Dividends column)
         
-        return df.sort_values("date").reset_index(drop=True)
-
-    def _parse_splits(self, splits_data: Optional[dict]) -> pd.DataFrame:
-        """주식분할 데이터 파싱"""
-        if not splits_data:
-            return pd.DataFrame()
-
-        df = pd.DataFrame(list(splits_data.values()))
+        Returns:
+            병합된 DataFrame
+        """
+        if df_sub.empty:
+            raise Exception("No data to merge")
         
-        if df.empty or "date" not in df.columns:
-            return pd.DataFrame()
+        if df.empty:
+            raise df
 
-        df["date"] = pd.to_datetime(df["date"], unit="s").dt.normalize()
-        df["Stock Splits"] = df["numerator"] / df["denominator"]
-        df = df[["date", "Stock Splits"]]
+        columns = [col for col in df_sub.columns if col not in df]
+        if len(columns) > 1:
+            raise ValueError("df_sub must have only one column.")
+        data_column = columns[0]
+
+        #df = df.sort_index()
+        #indices = np.searchsorted(np.append(df.index, df.index[-1] + timedelta(days=1)), df_sub.index, side='right')
+        #indices -= 1  # Convert from [[i-1], [i]) to [[i], [i+1])
         
-        return df.sort_values("date").reset_index(drop=True)
-
-    def _merge_event_df(self, df: pd.DataFrame, event_df: pd.DataFrame) -> pd.DataFrame:
-        """이벤트 DataFrame을 OHLCV에 병합"""
-        if event_df.empty:
-            return df
-
+        # df의 date를 datetime으로 변환
         df = df.copy()
         df["date"] = pd.to_datetime(df["date"])
         
-        # 병합
-        df = df.merge(event_df, on="date", how="left")
+        # df_div 처리
+        df_sub2 = df_sub.copy()
+        columns = df_sub.columns.tolist()
+        #print('columns', columns, type(columns))
+
+        # 인덱스가 datetime인 경우 리셋
+        if isinstance(df_sub2.index, pd.DatetimeIndex):
+            df_sub2 = df_sub2.reset_index()
+            columns.insert(0, "date")
+            #print('columns', columns)
+            df_sub2.columns = columns
         
-        # 이벤트 컬럼 NaN → 0
-        event_col = [c for c in event_df.columns if c != "date"][0]
-        df[event_col] = df[event_col].fillna(0)
-
-        return df
-
-    def _fetch_event_series(self, ticker: str, column: str) -> pd.Series:
-        """특정 이벤트 컬럼만 조회"""
-        start_date = (datetime.now() - timedelta(days=self.MAX_YEARS * 365)).strftime("%Y-%m-%d")
-        end_date = datetime.now().strftime("%Y-%m-%d")
+        # 날짜만 추출 (시간 제거)
+        df_sub2["date"] = pd.to_datetime(df_sub2["date"]).dt.normalize()
         
-        df = self.fetch(ticker, start_date=start_date, end_date=end_date)
+        # 같은 날짜에 여러 배당이 있을 경우 합산
+        #df_sub2 = df_sub2.groupby("date")["dividends"].sum().reset_index()
         
-        if column not in df.columns:
-            return pd.Series(dtype=float)
-
-        # 0이 아닌 값만 반환
-        series = df.set_index("date")[column]
-        return series[series != 0]
-
-    # ==================== Response Formatting ====================
-
-    def format_response(
-        self,
-        df: pd.DataFrame,
-        ticker: str,
-        ticker_info: Optional[dict] = None,
-    ) -> dict:
-        """
-        DataFrame을 프론트엔드 응답 형식으로 변환
+        # 병합 (left join - OHLCV 기준)
+        df_merged = df.merge(df_sub2, on="date", how="left")
         
-        Returns:
-            {
-                "name": str,
-                "source": "yahoo",
-                "currentPrice": {"value": float, "changePercent": float},
-                "volume": {"value": int, "changePercent": float},
-                "marketCap": {"value": int, "changePercent": float},
-                "priceHistory": [{"date": str, "price": float}, ...],
-                "volumeHistory": [{"date": str, "volume": int}, ...],
-            }
-        """
-        ticker_info = ticker_info or {}
-        company_name = ticker_info.get("shortName", ticker)
-        market_cap = ticker_info.get("marketCap", 0)
+        # 배당금 없는 날은 0으로 채우기
+        for col in columns:
+            df_merged[col] = df_merged[col].fillna(0)
+        
+        return df_merged
 
-        # 빈 데이터 처리
+    def _format_response_from_df(self, df: pd.DataFrame, ticker_info: dict, ticker: str):
+        """DataFrame을 받아 프론트엔드 응답 형식으로 변환하는 헬퍼 함수"""
+        company_name = ticker_info.get('shortName', ticker)
+        market_cap = ticker_info.get('marketCap', 0)
+
         if df is None or df.empty:
-            logger.info(f"No data for {company_name}")
-            return self._empty_response(company_name, market_cap)
+            print(f"'{company_name}'에 대한 데이터가 없어 빈 응답을 반환합니다.")
+            return {
+                "name": company_name,
+                "source": "yahoo",
+                "currentPrice": {"value": 0, "changePercent": 0},
+                "volume": {"value": 0, "changePercent": 0},
+                "marketCap": {"value": market_cap, "changePercent": 0},
+                "priceHistory": [],
+                "volumeHistory": [],
+            }
+        
+        # BQ에서 온 데이터는 'date', 'close', 'volume' 컬럼이 존재.
+        # yfinance에서 온 데이터는 'Date' 인덱스와 'Close', 'Volume' 컬럼을 가짐.
+        if 'date' not in df.columns:
+            df.reset_index(inplace=True)
+            df.rename(columns={'Date': 'date', 'Close': 'close', 'Volume': 'volume'}, inplace=True)
 
-        # 컬럼명 정규화
-        df = self._normalize_columns(df)
-        df = df.sort_values("date", ascending=False).reset_index(drop=True)
+        df.sort_values(by='date', ascending=False, inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
-        # 현재가/거래량 변동률 계산
         latest = df.iloc[0]
         previous = df.iloc[1] if len(df) > 1 else latest
 
-        price_change = self._calc_change_percent(latest["close"], previous["close"])
-        volume_change = self._calc_change_percent(latest["volume"], previous["volume"])
+        price_change_percent = ((latest['close'] - previous['close']) / previous['close']) * 100 if previous['close'] != 0 else 0
+        volume_change_percent = ((latest['volume'] - previous['volume']) / previous['volume']) * 100 if previous['volume'] != 0 else 0
 
-        return {
+        latest_close = float(latest['close']) if pd.notna(latest['close']) else 0.0
+        latest_volume = int(latest['volume']) if pd.notna(latest['volume']) else 0
+
+        result = {
             "name": company_name,
             "source": "yahoo",
             "currentPrice": {
-                "value": float(latest["close"]) if pd.notna(latest["close"]) else 0.0,
-                "changePercent": round(price_change, 2),
+                "value": latest_close,
+                "changePercent": round(price_change_percent, 2)
             },
             "volume": {
-                "value": int(latest["volume"]) if pd.notna(latest["volume"]) else 0,
-                "changePercent": round(volume_change, 2),
+                "value": latest_volume,
+                "changePercent": round(volume_change_percent, 2)
             },
             "marketCap": {
                 "value": market_cap,
-                "changePercent": 0,
+                "changePercent": 0 
             },
-            "priceHistory": self._format_history(df, "close", "price"),
-            "volumeHistory": self._format_history(df, "volume", "volume"),
+            "priceHistory": df.rename(columns={'close': 'price'})[['date', 'price']].to_dict(orient='records'),
+            "volumeHistory": df[['date', 'volume']].to_dict(orient='records')
         }
 
-    def _empty_response(self, name: str, market_cap: int) -> dict:
-        """빈 응답 생성"""
-        return {
-            "name": name,
-            "source": "yahoo",
-            "currentPrice": {"value": 0, "changePercent": 0},
-            "volume": {"value": 0, "changePercent": 0},
-            "marketCap": {"value": market_cap, "changePercent": 0},
-            "priceHistory": [],
-            "volumeHistory": [],
-        }
+        for item in result['priceHistory']:
+            if isinstance(item['date'], pd.Timestamp) or isinstance(item['date'], datetime.date):
+                item['date'] = pd.to_datetime(item['date']).strftime('%Y-%m-%d')
+            item['price'] = float(item['price'])
 
-    def _normalize_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        """컬럼명 정규화"""
-        df = df.copy()
-        
-        if "date" not in df.columns:
-            df = df.reset_index()
-        
-        rename_map = {
-            "Date": "date",
-            "Close": "close",
-            "Volume": "volume",
-            "Open": "open",
-            "High": "high",
-            "Low": "low",
-        }
-        df = df.rename(columns={k: v for k, v in rename_map.items() if k in df.columns})
-        
-        return df
+        for item in result['volumeHistory']:
+            if isinstance(item['date'], pd.Timestamp) or isinstance(item['date'], datetime.date):
+                item['date'] = pd.to_datetime(item['date']).strftime('%Y-%m-%d')
+            item['volume'] = int(item['volume'])
 
-    @staticmethod
-    def _calc_change_percent(current: float, previous: float) -> float:
-        """변동률 계산"""
-        if not previous or previous == 0:
-            return 0.0
-        return ((current - previous) / previous) * 100
-
-    def _format_history(
-        self,
-        df: pd.DataFrame,
-        source_col: str,
-        target_col: str,
-    ) -> list[dict]:
-        """히스토리 데이터 포맷팅"""
-        history = []
-        
-        for _, row in df.iterrows():
-            date_val = row["date"]
-            if isinstance(date_val, (pd.Timestamp, datetime)):
-                date_str = pd.to_datetime(date_val).strftime("%Y-%m-%d")
-            else:
-                date_str = str(date_val)
-
-            value = row[source_col]
-            if target_col == "volume":
-                value = int(value) if pd.notna(value) else 0
-            else:
-                value = float(value) if pd.notna(value) else 0.0
-
-            history.append({"date": date_str, target_col: value})
-
-        return history
+        return result

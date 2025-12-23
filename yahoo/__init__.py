@@ -89,6 +89,8 @@ from .parsers import (
     YahooChartParser,
     YahooNewsParser,
     YahooFundamentalsParser,
+    YahooHoldersParser,
+    YahooSummaryParser,
 )
 
 __all__ = [
@@ -105,4 +107,6 @@ __all__ = [
     "YahooChartParser",
     "YahooNewsParser",
     "YahooFundamentalsParser",
+    "YahooHoldersParser",
+    "YahooSummaryParser",
 ]

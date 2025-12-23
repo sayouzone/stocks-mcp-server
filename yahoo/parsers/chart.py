@@ -204,7 +204,7 @@ class YahooChartParser:
             "volume": quote.get("volume"),
         })
 
-        print(ohlcv_df)
+        #print(ohlcv_df)
 
         # 데이터 정리
         for col in ["open", "high", "low", "close"]:

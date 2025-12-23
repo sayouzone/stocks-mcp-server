@@ -47,7 +47,7 @@ class YahooQuoteParser:
         Yahoo Finance에서 뉴스를 수집하고, 기사 본문을 크롤링합니다.
         """
 
-        info_url = f"{_QUOTE_SUMMARY_URL_}/{ticker}"
+        summary_url = f"{_QUOTE_SUMMARY_URL_}/{ticker}"
         params = {
             "modules": ",".join(self.MODULES), 
             "corsDomain": "finance.yahoo.com", 
@@ -55,32 +55,29 @@ class YahooQuoteParser:
             "symbol": ticker
         }
 
-        if _QUERY2_URL_ in info_url:
+        if _QUERY2_URL_ in summary_url:
             params["crumb"] = self.fetch_crumb()
 
-        response = self.client._get(info_url, params=params)
-        info = response.json()
-
-        #print(info)
+        response = self.client._get(summary_url, params=params)
+        summary_info = response.json()
 
         params = {"symbols": ticker, "formatted": "false"}
         params["crumb"] = self.fetch_crumb()
 
         response = self.client._get(_QUOTE_URL_, params=params)
-        additional_info = response.json()
-        #print(additional_info)
+        quote_info = response.json()
 
-        if additional_info is not None and info is not None:
-            info.update(additional_info)
+        if quote_info is not None and summary_info is not None:
+            summary_info.update(quote_info)
         else:
-            info = additional_info
+            summary_info = quote_info
 
         query_info = {}
         for quote in ['quoteSummary', 'quoteResponse']:
-            if quote in info and len(info[quote]['result']) > 0:
-                info[quote]['result'][0]["symbol"] = ticker
+            if quote in summary_info and len(summary_info[quote]['result']) > 0:
+                summary_info[quote]['result'][0]["symbol"] = ticker
                 query = next(
-                    (item for item in info.get(quote, {}).get('result', []) 
+                    (item for item in summary_info.get(quote, {}).get('result', []) 
                     if item.get('symbol') == ticker), 
                     None
                 )

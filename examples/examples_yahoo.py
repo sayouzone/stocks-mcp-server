@@ -16,6 +16,50 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from yahoo import YahooCrawler
 
+def demo_analysis(crawler: YahooCrawler, ticker: str):
+    """Yahoo 주요 분석 조회 데모"""
+
+    print(f"\n{'='*60}")
+    print(f"Yahoo 주요 분석 조회 - {ticker}")
+    print('='*60)
+
+    ticker = "AAPL"
+
+    # 기업 캘린더 조회
+    print(f"\nYahoo 기업 캘린더 조회 ({ticker})")
+    data = crawler.calendar(ticker)
+    print(data)
+
+    # 기업 수익 추정치 (Earning Estimate) 조회
+    print(f"\nYahoo 기업 수익 추정치 (Earning Estimate) 조회 ({ticker})")
+    data = crawler.earnings_estimate(ticker)
+    print(data)
+
+    # 기업 매출 추정치 (Revenue Estimate) 조회
+    print(f"\nYahoo 기업 매출 추정치 (Revenue Estimate) 조회 ({ticker})")
+    data = crawler.revenue_estimate(ticker)
+    print(data)
+
+    # 기업 수익 내역 (Earnings History) 조회
+    print(f"\nYahoo 기업 수익 내역 (Earnings History) 조회 ({ticker})")
+    data = crawler.earnings_history(ticker)
+    print(data)
+
+    # 기업 EPS 추세 (EPS Trend) 조회
+    print(f"\nYahoo 기업 EPS 추세 (EPS Trend) 조회 ({ticker})")
+    data = crawler.eps_trend(ticker)
+    print(data)
+
+    # 기업 EPS 수정치 (EPS Revisions) 조회
+    print(f"\nYahoo 기업 EPS 수정치 (EPS Revisions) 조회 ({ticker})")
+    data = crawler.eps_revisions(ticker)
+    print(data)
+
+    # 기업 성장 추정치 (Growth Estimate) 조회
+    print(f"\nYahoo 기업 성장 추정치 (Growth Estimate) 조회 ({ticker})")
+    data = crawler.growth_estimate(ticker)
+    print(data)
+
 def demo_quote(crawler: YahooCrawler, ticker: str):
     """Yahoo 주요 시세 조회 데모"""
 
@@ -23,50 +67,14 @@ def demo_quote(crawler: YahooCrawler, ticker: str):
     print(f"Yahoo 주요 시세 조회 - {ticker}")
     print('='*60)
 
-    # 기업 정보 조회
-    print(f"\nYahoo 기업 정보 조회 ({ticker})")
-    data = crawler.info(ticker)
-    print(data)
-
-    # 기업 캘린더 조회
-    print(f"\nYahoo 기업 캘린더 조회 ({ticker})")
-    data = crawler.calendar(ticker)
-    print(data)
-
     # 기업 이익공시일 (Earning Calendar) 조회
-    ticker = "AAPL"
     print(f"\nYahoo 기업 이익공시일 (Earning Calendar) 조회 ({ticker})")
     data = crawler.earning_calendar(ticker)
     print(data)
 
     # 기업 추천도움 (Recommendation) 조회
-    ticker = "AAPL"
     print(f"\nYahoo 기업 추천도움 (Recommendation) 조회 ({ticker})")
     data = crawler.recommendation(ticker)
-    print(data)
-
-    # 기업 매출 추정치 (Revenue Estimate) 조회
-    ticker = "AAPL"
-    print(f"\nYahoo 기업 매출 추정치 (Revenue Estimate) 조회 ({ticker})")
-    data = crawler.revenue_estimate(ticker)
-    print(data)
-
-    # 기업 수익 추정치 (Earning Estimate) 조회
-    ticker = "AAPL"
-    print(f"\nYahoo 기업 수익 추정치 (Earning Estimate) 조회 ({ticker})")
-    data = crawler.earnings_estimate(ticker)
-    print(data)
-
-    # 기업 EPS 추세 (EPS Trend) 조회
-    ticker = "AAPL"
-    print(f"\nYahoo 기업 EPS 추세 (EPS Trend) 조회 ({ticker})")
-    data = crawler.eps_trend(ticker)
-    print(data)
-
-    # 기업 EPS 수정치 (EPS Revisions) 조회
-    ticker = "AAPL"
-    print(f"\nYahoo 기업 EPS 수정치 (EPS Revisions) 조회 ({ticker})")
-    data = crawler.eps_revisions(ticker)
     print(data)
 
 def demo_market(crawler: YahooCrawler, ticker: str):
@@ -155,6 +163,30 @@ def demo_financials(crawler: YahooCrawler, ticker: str):
     data = crawler.quarterly_cash_flow(ticker)
     print(data)
 
+def demo_holders(crawler: YahooCrawler, ticker: str):
+    """Yahoo 소유주 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"Yahoo 소유주 조회 - {ticker}")
+    print('='*60)
+
+    # 기업 소유주 조회
+    print(f"\nYahoo 기업 소유주 조회 ({ticker})")
+    data = crawler.holders(ticker)
+    for key, value in data.items():
+        print(f"\n{key}:\n{value}")
+
+def demo_summary(crawler: YahooCrawler, ticker: str):
+    """Yahoo 요약 정보 조회 데모"""
+
+    print(f"\n{'='*60}")
+    print(f"Yahoo 요약 정보 조회 - {ticker}")
+    print('='*60)
+
+    # 기업 정보 조회
+    print(f"\nYahoo 기업 요약 정보 조회 ({ticker})")
+    data = crawler.summary(ticker)
+    print(data)
+
 def main(ticker: str):
     """메인 데모 실행"""
     
@@ -164,10 +196,13 @@ def main(ticker: str):
     crawler = YahooCrawler()
 
     # 각 파일링 타입 데모
-    demo_quote(crawler, ticker)
+    #demo_analysis(crawler, ticker)
+    #demo_quote(crawler, ticker)
     #demo_market(crawler, ticker)
     #demo_news(crawler, ticker)
     #demo_financials(crawler, ticker)
+    demo_holders(crawler, ticker)
+    #demo_summary(crawler, ticker)
     
     print("\n" + "="*60)
     print("Demo completed!")
@@ -176,5 +211,7 @@ def main(ticker: str):
 
 if __name__ == "__main__":
     # 삼성전자, 하이닉스, 네이버 예시
-    ticker = "TSLA" # 삼성전자
+    #ticker = "TSLA" # Tesla
+    ticker = "AAPL" # Apple
+    #ticker = "GOOG"
     main(ticker)

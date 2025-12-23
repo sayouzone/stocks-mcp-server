@@ -7,6 +7,8 @@ from .chart import YahooChartParser
 from .news import YahooNewsParser
 from .fundamentals import YahooFundamentalsParser
 from .quote import YahooQuoteParser
+from .holders import YahooHoldersParser
+from .summary import YahooSummaryParser
 
 __all__ = [
     "YahooAnalysisParser",
@@ -14,4 +16,6 @@ __all__ = [
     "YahooChartParser",
     "YahooNewsParser",
     "YahooFundamentalsParser",
+    "YahooHoldersParser",
+    "YahooSummaryParser",
 ]

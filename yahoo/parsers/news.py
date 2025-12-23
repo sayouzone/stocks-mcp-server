@@ -120,7 +120,6 @@ class YahooNewsParser:
 
         total_articles = len(news_list)
         for i, item in enumerate(news_list):
-            print(item)
             link = item.get('canonicalUrl', {}).get('url')
             item['crawled_content'] = None # Initialize to None
             if link:
@@ -152,9 +151,7 @@ class YahooNewsParser:
         articles = []
         total_articles = len(news_list)
         for i, item in enumerate(news_list):
-            print(item)
             link = item.get('content', {}).get('canonicalUrl', {}).get('url')
-            print(link)
             item['crawled_content'] = None # Initialize to None
             if link:
                 item['crawled_content'] = self._fetch_content(link)
