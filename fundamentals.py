@@ -6,7 +6,7 @@ from fastmcp import FastMCP
 from pathlib import Path
 
 #from utils.crawler.fnguide import FnGuideCrawler
-from utils.yahoofinance import Fundamentals as YahooFundamentals
+#from utils.yahoofinance import Fundamentals as YahooFundamentals
 from utils.gcpmanager import GCSManager
 
 from edgar import EDGARCrawler
@@ -65,6 +65,53 @@ async def find_fnguide_data(stock: str, use_cache: bool = True):
     #crawler = FnGuideCrawler(stock=stock)
     #data = await crawler.fundamentals(use_cache=use_cache)
     crawler = FnGuideCrawler()
+    data = crawler.finance(stock=stock)
+    return data
+
+@mcp.tool(
+    name="find_opendart_data",
+    description="""OpenDART에서 한국 주식 재무제표 수집 (yfinance와 동일한 스키마, 캐시 사용).
+    사용 대상:
+    - 6자리 숫자 티커: 005930, 000660
+    - .KS/.KQ 접미사: 005930.KS, 035720.KQ
+    - 한국 기업명: 삼성전자, SK하이닉스
+
+    반환: {
+        "ticker": str,
+        "country": "KR",
+        "balance_sheet": str | None,      # JSON 문자열
+        "income_statement": str | None,   # JSON 문자열
+        "cash_flow": str | None           # JSON 문자열
+    }
+
+    참고: 캐시를 우선 사용하여 빠른 응답을 제공합니다.
+    크롤링은 최대 60초 이상 소요될 수 있으므로 가능한 캐시를 활용합니다.
+    """,
+    tags={"opendart", "fundamentals", "korea", "standardized", "cached"}
+)
+async def find_opendart_data(stock: str, use_cache: bool = True):
+    """
+    FnGuide에서 한국 주식 재무제표 3종을 수집합니다.
+
+    yfinance와 동일한 스키마를 반환하여 LLM 에이전트가
+    한국 주식과 해외 주식을 동일한 방식으로 처리할 수 있습니다.
+
+    Args:
+        stock: 종목 코드 (예: "005930", "삼성전자")
+        use_cache: GCS 캐시 사용 여부 (기본값: True, 권장)
+
+    Returns:
+        dict: 재무제표 3종 (yfinance와 동일한 스키마)
+
+    Note:
+        - use_cache=True (기본값): GCS에서 캐시된 데이터를 먼저 확인 (빠름)
+        - use_cache=False: 항상 새로 크롤링 (느림, 30초+ 소요)
+    """
+    logger.info(f">>> 🛠️ Tool: 'find_opendart_data' called for '{stock}'")
+
+    #crawler = FnGuideCrawler(stock=stock)
+    #data = await crawler.fundamentals(use_cache=use_cache)
+    crawler = OpenDartCrawler()
     data = crawler.finance(stock=stock)
     return data
 

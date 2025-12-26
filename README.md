@@ -19,6 +19,98 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 - [Cloud Run에 보안 MCP 서버를 배포하는 방법](https://codelabs.developers.google.com/codelabs/cloud-run/how-to-deploy-a-secure-mcp-server-on-cloud-run?hl=ko)
 - [Gemini CLI: Custom slash commands](https://cloud.google.com/blog/topics/developers-practitioners/gemini-cli-custom-slash-commands?e=48754805)
 
+## 패키지 구조
+
+```
+edgar/
+  ├── __init__.py          # 공개 API 정의
+  ├── client.py            # SEC EDGAR HTTP 클라이언트
+  ├── models.py            # 데이터 클래스 (DTO)
+  ├── utils.py             # 유틸리티 함수 & 상수
+  ├── crawler.py           # 통합 인터페이스 (Facade)
+  ├── examples.py          # 사용 예시
+  └── parsers/
+      ├── __init__.py
+      ├── form_10k.py      # 10-K/10-Q 파서
+      ├── form_8k.py       # 8-K 파서
+      ├── form_13f.py      # 13F 파서
+      └── def14a.py        # DEF 14A 파서
+fnguide/
+  ├── __init__.py          # 공개 API 정의
+  ├── client.py            # OpenDART HTTP 클라이언트
+  ├── models.py            # 데이터 클래스 (DTO)
+  ├── utils.py             # 유틸리티 함수 & 상수
+  ├── crawler.py           # 통합 인터페이스 (Facade)
+  ├── examples.py          # 사용 예시
+  └── parsers/
+      ├── __init__.py
+      ├── company.py            # FnGuide 기업개요 파서
+      ├── comparison.py         # FnGuide 경쟁사비교 파서
+      ├── consensus.py          # FnGuide 컨센서스 파서
+      ├── dart.py               # FnGuide 금감원공시 파서
+      ├── disclosure.py         # FnGuide 거래소공시 파서
+      ├── finance_ratio.py      # FnGuide 재무비율 파서
+      ├── finance.py            # FnGuide 재무제표 파서
+      ├── industry_analysis.py  # FnGuide 업종분석 파서
+      ├── invest.py             # FnGuide 투자지표 파서
+      ├── main.py               # FnGuide 메인(Snapshot) 파서
+      └── share_analysis.py     # FnGuide 지분분석 파서
+naver/
+  ├── __init__.py          # 공개 API 정의
+  ├── client.py            # OpenDART HTTP 클라이언트
+  ├── models.py            # 데이터 클래스 (DTO)
+  ├── utils.py             # 유틸리티 함수 & 상수
+  ├── crawler.py           # 통합 인터페이스 (Facade)
+  ├── examples.py          # 사용 예시
+  └── parsers/
+      ├── __init__.py
+      ├── news.py          # Naver News 크롤링 파서
+      └── market.py        # Naver Market API/크롤링 파서
+opendart/
+  ├── __init__.py          # 공개 API 정의
+  ├── client.py            # OpenDART HTTP 클라이언트
+  ├── models.py            # 데이터 클래스 (DTO)
+  ├── utils.py             # 유틸리티 함수 & 상수
+  ├── crawler.py           # 통합 인터페이스 (Facade)
+  ├── examples.py          # 사용 예시
+  └── parsers/
+      ├── __init__.py
+      ├── document.py        # 문서 API 파서
+      ├── document_viewer.py # 문서 뷰어 API 파서
+      ├── disclosure.py      # 공시정보 API 파서
+      ├── finance.py         # 정기보고서 재무정보 API 파서
+      ├── material_facts.py  # 주요사항보고서 주요정보 API 파서
+      ├── ownership.py       # 지분공시 종합정보 API 파서
+      ├── registration.py    # 증권신고서 주요정보 API 파서
+      └── reports.py         # 정기보고서 주요정보 API 파서
+tests/
+  ├── test_edgar.py          # Edgar 테스트
+  ├── test_fnguide.py        # FnGuide 테스트
+  ├── test_naver.py          # Naver 테스트
+  ├── test_opendart.py       # OpenDART 테스트
+  └── test_yahoo.py          # Yahoo 테스트
+yahoo/
+  ├── __init__.py          # 공개 API 정의
+  ├── client.py            # OpenDART HTTP 클라이언트
+  ├── models.py            # 데이터 클래스 (DTO)
+  ├── utils.py             # 유틸리티 함수 & 상수
+  ├── crawler.py           # 통합 인터페이스 (Facade)
+  ├── examples.py          # 사용 예시
+  └── parsers/
+      ├── __init__.py
+      ├── analysis.py      # 분석 API 파서
+      ├── chart.py         # 시세정보 API 파서
+      ├── fundamentals.py  # 재무정보 API 파서
+      ├── holders.py       # 소유주 API 파서
+      ├── market.py        # 시장정보 API 파서
+      ├── news.py          # 뉴스 API 파서
+      ├── options.py       # 옵션 API 파서
+      ├── profile.py       # 프로필 API 파서
+      ├── quote.py         # 기업정보 API 파서
+      ├── statistics.py    # 통계 API 파서
+      └── summary.py       # 요약 API 파서
+```
+
 ## 배포 (Cloud Run)
 
 ```bash
@@ -165,11 +257,11 @@ Configured MCP servers:
 
 ℹ Gemini CLI update available! 0.14.0 → 0.15.0
   Installed via Homebrew. Please update with "brew upgrade".
-╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ x  find_fnguide_data (stocks-remote MCP Server) {"stock":"삼성전자"}                                                                        │
-│                                                                                                                                             │
-│    MCP tool 'find_fnguide_data' reported tool error for function call: {"name":"find_fnguide_data","args":{"stock":"삼성전자"}} with        │
-│    response: [{"functionResponse":{"name":"find_fnguide_data","response":{"error":{"content":[{"type":"text","text":"Error calling tool     │
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ x  find_fnguide_data (stocks-remote MCP Server) {"stock":"삼성전자"}                                                      │
+│                                                                                                                         │
+│    MCP tool 'find_fnguide_data' reported tool error for function call: {"name":"find_fnguide_data","args":{"stock":"삼성전자"}} with  │
+│    response: [{"functionResponse":{"name":"find_fnguide_data","response":{"error":{"content":[{"type":"text","text":"Error calling tool │
 │    'find_fnguide_data': BrowserType.launch: Executable doesn't exist at                                                                     │
 │    /root/.cache/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell\n╔══════════════════════════════════════════════════ │
 │    ══════════╗\n║ Looks like Playwright was just installed or updated.       ║\n║ Please run the following command to download new          │
