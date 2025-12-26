@@ -147,7 +147,7 @@ class DartFinanceParser:
             params["idx_cl_code"] = indicator_code # 수익성지표 : M210000 안정성지표 : M220000 성장성지표 : M230000 활동성지표 : M240000
 
         # 기능 선택 방식에 대해서 고민 중
-        url = finance_urls.get(api_type, "")
+        url = FINANCE_URLS.get(api_type, "")
 
         print(f"URL: {url}, params: {params}")
         response = self.client._get(url, params=params)
@@ -183,7 +183,7 @@ class DartFinanceParser:
             pd.DataFrame: 기업개황
         """
 
-        url = finance_urls.get("재무제표 원본파일(XBRL)", "")
+        url = FINANCE_URLS.get("재무제표 원본파일(XBRL)", "")
         report_code = quarters.get(str(quarter), "4")
         
         params = {

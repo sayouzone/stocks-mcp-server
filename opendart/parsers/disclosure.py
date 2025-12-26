@@ -72,7 +72,7 @@ class DartDisclosureParser:
         while True:
             params['page_no'] = page
 
-            url = disclosure_urls.get("공시검색")
+            url = DISCLOSURE_URLS.get("공시검색")
             
             response = self.client._get(url, params=params)
             json_data = response.json()
@@ -119,7 +119,7 @@ class DartDisclosureParser:
         params = self.params
         params["corp_code"] = code
 
-        url = disclosure_urls.get("기업개황")
+        url = DISCLOSURE_URLS.get("기업개황")
         print(url, params)
 
         response = self.client._get(url, params=params)
@@ -154,7 +154,7 @@ class DartDisclosureParser:
         params = self.params
         params["rcept_no"] = rcept_no
 
-        url = disclosure_urls.get("공시서류원본파일")
+        url = DISCLOSURE_URLS.get("공시서류원본파일")
 
         response = self.client._get(url, params=params)
 
@@ -226,7 +226,7 @@ class DartDisclosureParser:
         
         params = self.params
 
-        url = disclosure_urls.get("고유번호")
+        url = DISCLOSURE_URLS.get("고유번호")
         print(url, params)
 
         response = self.client._get(url, params=params)

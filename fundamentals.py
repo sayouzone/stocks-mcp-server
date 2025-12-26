@@ -5,9 +5,15 @@ import pandas as pd
 from fastmcp import FastMCP
 from pathlib import Path
 
-from utils.crawler.fnguide import FnGuideCrawler
+#from utils.crawler.fnguide import FnGuideCrawler
 from utils.yahoofinance import Fundamentals as YahooFundamentals
 from utils.gcpmanager import GCSManager
+
+from edgar import EDGARCrawler
+from fnguide import FnGuideCrawler
+from naver import NaverCrawler
+from opendart import OpenDartCrawler
+from yahoo import YahooCrawler
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="[%(levelname)s]: %(message)s", level=logging.INFO)
@@ -56,8 +62,10 @@ async def find_fnguide_data(stock: str, use_cache: bool = True):
     """
     logger.info(f">>> 🛠️ Tool: 'find_fnguide_data' called for '{stock}'")
 
-    crawler = FnGuideCrawler(stock=stock)
-    data = await crawler.fundamentals(use_cache=use_cache)
+    #crawler = FnGuideCrawler(stock=stock)
+    #data = await crawler.fundamentals(use_cache=use_cache)
+    crawler = FnGuideCrawler()
+    data = crawler.finance(stock=stock)
     return data
 
 
@@ -83,8 +91,10 @@ def find_yahoofinance_data(query: str, attribute: str):
     """
     logger.info(f">>> 🛠️ Tool: 'find_yahoofinance_data' called for '{query}'")
 
-    data = YahooFundamentals().fundamentals(query=query, attribute_name_str=attribute)
-
+    #data = YahooFundamentals().fundamentals(query=query, attribute_name_str=attribute)
+    #data = crawler.fundamentals(query=query, attribute_name_str=attribute)
+    
+    """
     if isinstance(data, pd.DataFrame):
         return json.loads(data.to_json(orient="records", date_format="iso"))
     if isinstance(data, pd.Series):
@@ -93,7 +103,31 @@ def find_yahoofinance_data(query: str, attribute: str):
         return data
     
     return data
+    """
+    
+    crawler = YahooCrawler()
+    # Yahoo 재무제표 (연간))
+    income_statement = crawler.income_statement(query)
+    # 재무상태표 (연간)
+    balance_sheet = crawler.balance_sheet(query)
+    # 현금흐름표 (연간)
+    cash_flow = crawler.cash_flow(query)
 
+    return {
+        "ticker": query,
+        "country": "US",
+        "income_statement": _to_json(income_statement),
+        "balance_sheet": _to_json(balance_sheet),
+        "cash_flow": _to_json(cash_flow)
+    }
+
+def _to_json(data):
+    if isinstance(data, pd.DataFrame):
+        return json.loads(data.to_json(orient="records", date_format="iso"))
+    if isinstance(data, pd.Series):
+        return data.to_dict()
+    if isinstance(data, dict):
+        return data
 
 @mcp.tool(
     name="get_yahoofinance_fundamentals",
