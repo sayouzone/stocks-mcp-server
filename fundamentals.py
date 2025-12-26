@@ -29,6 +29,8 @@ dart_api_key = response.payload.data.decode("UTF-8")
 print(f"DART API Key: {dart_api_key}")
 os.environ["DART_API_KEY"] = dart_api_key
 
+corpcode_filename = "corpcode.json"
+
 #mcp = FastMCP(name="StockFundamentalsServer")
 mcp = FastMCP("Stocks MCP Server")
 
@@ -131,6 +133,8 @@ async def find_opendart_data(stock: str, year: int | None = None):
         year = str(now.year - 1)
 
     crawler = OpenDartCrawler(api_key=dart_api_key)
+    corp_data = crawler.corp_data
+    crawler.save_corp_data(corpcode_filename)
 
     api_type = "단일회사 주요계정"
     corp_code = crawler.fetch_corp_code(stock)
