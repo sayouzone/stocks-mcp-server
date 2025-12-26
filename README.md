@@ -35,6 +35,9 @@ edgar/
       ├── form_8k.py       # 8-K 파서
       ├── form_13f.py      # 13F 파서
       └── def14a.py        # DEF 14A 파서
+examples/
+  ├── __init__.py          # 공개 API 정의
+  └── parsers/
 fnguide/
   ├── __init__.py          # 공개 API 정의
   ├── client.py            # OpenDART HTTP 클라이언트
@@ -109,6 +112,14 @@ yahoo/
       ├── quote.py         # 기업정보 API 파서
       ├── statistics.py    # 통계 API 파서
       └── summary.py       # 요약 API 파서
+__init__.py
+.gitignore
+Dockerfile
+LICENSE
+pyproject.toml
+README.md
+requirements.txt
+server.py
 ```
 
 ## 배포 (Cloud Run)
@@ -139,6 +150,12 @@ gcloud iam service-accounts create mcp-server-sa --display-name="MCP Server Serv
 gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
     --member=user:$(gcloud config get-value account) \
     --role='roles/run.invoker'
+```
+
+```bash
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
+    --member=serviceAccount:mcp-server-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
+    --role="roles/secretmanager.secretAccessor"
 ```
 
 #### 배포
@@ -647,6 +664,21 @@ Tips for getting started:
    * Financing Cash Flow: -120,686,000,000 USD
 
   Would you like to see more detailed information for a specific period or category?
+```
+
+```bash
+> OpenDart으로 삼성전자 재무제표 보여줘
+
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  find_opendart_data (stocks-remote MCP Server) {"stock":"삼성전자"}                                                     │
+│                                                                                                                         │
+│ Error calling tool 'find_opendart_data': 'DartDisclosureParser' object has no attribute '_DartDisclosureParser__save_zip_path' │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✓  ReadFolder opendart                                                                                                  │
+│                                                                                                                         │
+│ Listed 9 item(s).                                                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## References

@@ -1,7 +1,9 @@
 import json
 import logging
+import os
 import pandas as pd
 
+from datetime import datetime
 from fastmcp import FastMCP
 from pathlib import Path
 
@@ -15,8 +17,17 @@ from naver import NaverCrawler
 from opendart import OpenDartCrawler
 from yahoo import YahooCrawler
 
+from google.cloud import secretmanager
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="[%(levelname)s]: %(message)s", level=logging.INFO)
+
+sm_client = secretmanager.SecretManagerServiceClient()
+name = "projects/1037372895180/secrets/DART_API_KEY/versions/latest"
+response = sm_client.access_secret_version(name=name)
+dart_api_key = response.payload.data.decode("UTF-8")
+print(f"DART API Key: {dart_api_key}")
+os.environ["DART_API_KEY"] = dart_api_key
 
 #mcp = FastMCP(name="StockFundamentalsServer")
 mcp = FastMCP("Stocks MCP Server")
@@ -42,7 +53,7 @@ mcp = FastMCP("Stocks MCP Server")
     """,
     tags={"fnguide", "fundamentals", "korea", "standardized", "cached"}
 )
-async def find_fnguide_data(stock: str, use_cache: bool = True):
+async def find_fnguide_data(stock: str):
     """
     FnGuide에서 한국 주식 재무제표 3종을 수집합니다.
 
@@ -51,7 +62,6 @@ async def find_fnguide_data(stock: str, use_cache: bool = True):
 
     Args:
         stock: 종목 코드 (예: "005930", "삼성전자")
-        use_cache: GCS 캐시 사용 여부 (기본값: True, 권장)
 
     Returns:
         dict: 재무제표 3종 (yfinance와 동일한 스키마)
@@ -70,7 +80,7 @@ async def find_fnguide_data(stock: str, use_cache: bool = True):
 
 @mcp.tool(
     name="find_opendart_data",
-    description="""OpenDART에서 한국 주식 재무제표 수집 (yfinance와 동일한 스키마, 캐시 사용).
+    description="""OpenDART에서 한국 주식 재무제표 수집 (yfinance와 동일한 스키마).
     사용 대상:
     - 6자리 숫자 티커: 005930, 000660
     - .KS/.KQ 접미사: 005930.KS, 035720.KQ
@@ -89,16 +99,15 @@ async def find_fnguide_data(stock: str, use_cache: bool = True):
     """,
     tags={"opendart", "fundamentals", "korea", "standardized", "cached"}
 )
-async def find_opendart_data(stock: str, use_cache: bool = True):
+async def find_opendart_data(stock: str, year: int | None = None):
     """
-    FnGuide에서 한국 주식 재무제표 3종을 수집합니다.
+    OpenDART에서 한국 주식 재무제표 3종을 수집합니다.
 
     yfinance와 동일한 스키마를 반환하여 LLM 에이전트가
     한국 주식과 해외 주식을 동일한 방식으로 처리할 수 있습니다.
 
     Args:
         stock: 종목 코드 (예: "005930", "삼성전자")
-        use_cache: GCS 캐시 사용 여부 (기본값: True, 권장)
 
     Returns:
         dict: 재무제표 3종 (yfinance와 동일한 스키마)
@@ -109,10 +118,24 @@ async def find_opendart_data(stock: str, use_cache: bool = True):
     """
     logger.info(f">>> 🛠️ Tool: 'find_opendart_data' called for '{stock}'")
 
+    dart_api_key = os.getenv("DART_API_KEY")
+    print(f"DART API Key: {dart_api_key}")
+    if not dart_api_key:
+        raise ValueError("DART_API_KEY environment variable is not set")
+
     #crawler = FnGuideCrawler(stock=stock)
     #data = await crawler.fundamentals(use_cache=use_cache)
-    crawler = OpenDartCrawler()
-    data = crawler.finance(stock=stock)
+
+    if not year:
+        now = datetime.now()
+        year = str(now.year - 1)
+
+    crawler = OpenDartCrawler(api_key=dart_api_key)
+
+    api_type = "단일회사 주요계정"
+    corp_code = crawler.fetch_corp_code(stock)
+    data = crawler.finance(corp_code, year, api_type=api_type)
+
     return data
 
 

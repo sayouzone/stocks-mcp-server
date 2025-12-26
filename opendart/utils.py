@@ -16,6 +16,11 @@
 OpenDart 유틸리티 함수 및 상수
 """
 
+import io
+import re
+import xmltodict
+import zipfile
+
 # ============================================================
 # 상수 정의
 # ============================================================
@@ -40,7 +45,7 @@ DISCLOSURE_URLS = {
     "공시검색": f"{API_URL}/list.json", # 공시 유형별, 회사별, 날짜별 등 여러가지 조건으로 공시보고서 검색기능을 제공합니다.
     "기업개황": f"{API_URL}/company.json", # DART에 등록되어있는 기업의 개황정보를 제공합니다.
     "공시서류원본파일": f"{API_URL}/document.xml", # 공시보고서 원본파일을 제공합니다.
-    "고유번호": f"{API_URL}/corpCode.json" # DART에 등록되어있는 공시대상회사의 고유번호,회사명,종목코드, 최근변경일자를 파일로 제공합니다.
+    "고유번호": f"{API_URL}/corpCode.xml" # DART에 등록되어있는 공시대상회사의 고유번호,회사명,종목코드, 최근변경일자를 파일로 제공합니다.
 }
 
 # 정기보고서 주요정보
@@ -1134,3 +1139,79 @@ def duplicate_keys(columns: dict[str, str]):
     print(f"Seen: {len(seen)}")
     print(f"Duplicates: {len(duplicates)}")
     return seen, duplicates
+
+def save_zip_path(headers, save_path):
+    save_path = None
+    
+    content_disposition = headers.get("Content-Disposition", "")
+    # filename="..." 또는 filename*=UTF-8''... 패턴 찾기
+    match = re.search(r"filename\*?=['\"]?(?:UTF-8'')?([^'\";\n]+)", content_disposition)
+    if match:
+        filename = match.group(1)
+
+        # URL 인코딩된 경우
+        if '%' in filename:
+            filename = unquote(filename)
+        
+        # 깨진 인코딩 복원
+        save_path = decode_euc_kr(filename)
+            
+        # .zip 확장자 제거하여 폴더명으로 사용
+        save_path = filename.replace('.zip', '')
+
+    return save_path
+
+def parse_xml(content, filename):
+    """Placeholder for XML parsing logic"""
+
+    print(f"Parsing XML file: {filename}")
+    # Implement actual XML parsing here
+    content = content.decode('utf-8')
+    #print(content)
+    return {"filename": filename, "content": xmltodict.parse(content)}
+
+def parse_unzip_xml(headers, binary_data, save_path):
+    #print(headers, binary_data, save_path)
+    result = {
+        'files': [],
+        'xml_data': [],
+        'save_path': save_path
+    }
+
+    if headers.get("Content-Type", "") == "application/json":
+        return result
+
+    with zipfile.ZipFile(io.BytesIO(binary_data)) as zf:
+        file_list = zf.namelist()
+        print(f"압축 파일 내 {len(file_list)}개 파일:")
+        
+        for fname in file_list:
+            enc_name = decode_euc_kr(fname)
+            print(f"  - {enc_name}")
+            result['files'].append(enc_name)
+            
+            if fname.endswith('.xml'):
+                content = zf.read(fname)
+                parsed = parse_xml(content, enc_name)
+                result['xml_data'].append(parsed)
+    return result
+
+def save_zip(binary_data, save_path):
+    # 파일 저장
+    with open(save_path, 'wb') as f:
+        f.write(binary_data)
+        print(f"저장 완료: {save_path}")
+
+def save_unzip(binary_data, save_path):
+    # ZIP 압축 해제
+    with zipfile.ZipFile(io.BytesIO(binary_data)) as zf:
+        # 파일 목록 출력
+        file_list = zf.namelist()
+        print(f"압축 파일 내 {len(file_list)}개 파일:")
+        for fname in file_list:
+            print(f"  - {fname}")
+        
+        # 전체 압축 해제
+        zf.extractall(save_path)
+    
+    print(f"압축 해제 완료: {save_path}")
