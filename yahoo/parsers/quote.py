@@ -1,3 +1,17 @@
+# Copyright (c) 2025, Sayouzone
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+ 
 import logging
 import pandas as pd
 import random
@@ -163,6 +177,33 @@ class YahooQuoteParser:
         except Exception as e:
             logger.error(f"Failed to fetch recommendation for {ticker}: {e}")
             return pd.DataFrame()
+    
+    def fetch_sec_filings(self, ticker: str):
+        """
+        SEC Filings API 호출
+        
+        Args:
+            ticker: 종목 심볼
+        """
+        try:
+            response = self.fetch_quote(ticker, modules=["secFilings"])
+
+            if response is None:
+                return {}
+
+            filings = response.get("quoteSummary", {}).get("result", [{}])[0].get("secFilings", {}).get("filings", [])
+            #print(filings)
+
+            for filing in filings:
+                if 'exhibits' in filing:
+                    filing['exhibits'] = {ex.get("type", ""):ex.get("url", "") for ex in filing.get('exhibits', [{}])}
+                filing['date'] = datetime.strptime(filing.get('date', ''), '%Y-%m-%d').date()
+            
+            return filings
+
+        except Exception as e:
+            logger.error(f"Failed to fetch sec filings for {ticker}: {e}")
+            return {}
 
     def fetch_quote(self, ticker: str, modules: list[str]):
         """
@@ -190,8 +231,10 @@ class YahooQuoteParser:
         }
 
         # 크럼 인증 추가
-        if _QUERY2_URL_ in url:
-            params["crumb"] = self.fetch_crumb()
+        if not self._crumb and _QUERY2_URL_ in url:
+            self._crumb = self.fetch_crumb()
+        
+        params["crumb"] = self._crumb
 
         # API 호출
         try:

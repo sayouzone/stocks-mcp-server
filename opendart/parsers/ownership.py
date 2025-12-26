@@ -1,3 +1,17 @@
+# Copyright (c) 2025, Sayouzone
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+ 
 import io
 import zipfile
 import re
@@ -9,8 +23,9 @@ from ..client import OpenDartClient
 
 from ..utils import (
     decode_euc_kr,
-    ownership_urls,
-    quarters
+    OWNERSHIP_URLS,
+    quarters,
+    OWNERSHIP_COLUMNS
 )
 
 class DartOwnershipParser:
@@ -31,8 +46,8 @@ class DartOwnershipParser:
     def fetch(self, corp_code: str, api_no: int = -1, api_type: str = None):
         url = None
 
-        api_key = list(ownership_urls.keys())[api_no] if api_no > -1 else api_type        
-        url = ownership_urls.get(api_key)
+        api_key = list(OWNERSHIP_URLS.keys())[api_no] if api_no > -1 else api_type        
+        url = OWNERSHIP_URLS.get(api_key)
 
         if not url:
             return

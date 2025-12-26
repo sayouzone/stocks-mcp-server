@@ -1,3 +1,17 @@
+# Copyright (c) 2025, Sayouzone
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+ 
 from .client import YahooClient
 
 from .parsers import (
@@ -154,6 +168,10 @@ class YahooCrawler:
     def earning_calendar(self, ticker: str):
         """기업 이익공시일 (Earning Calendar) 조회"""
         return self.quote_parser.fetch_earning_calendar(ticker, limit=100, offset=0)
+
+    def sec_filings(self, ticker: str):
+        """기업 SEC 공시 정보 (SEC Filings) 조회"""
+        return self.quote_parser.fetch_sec_filings(ticker)
 
     def recommendation(self, ticker: str):
         """기업 추천도움 (Recommendation) 조회"""
