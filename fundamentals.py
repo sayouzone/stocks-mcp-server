@@ -76,8 +76,25 @@ async def find_fnguide_data(stock: str):
 
     #crawler = FnGuideCrawler(stock=stock)
     #data = await crawler.fundamentals(use_cache=use_cache)
+    """
+    from utils.companydict import companydict
+
+    stock_code = companydict.get_code(stock)
+    if not stock_code:
+        logger.error(f"Stock code not found for {stock}")
+        return None
+    """
+
+    crawler = OpenDartCrawler(api_key=dart_api_key)
+    corp_data = crawler.corp_data
+    crawler.save_corp_data(corpcode_filename)
+    stock_code = crawler.fetch_stock_code(stock)
+    if not stock_code:
+        logger.error(f"Stock code not found for {stock}")
+        return None
+
     crawler = FnGuideCrawler()
-    data = crawler.finance(stock=stock)
+    data = crawler.finance(stock=stock_code)
     return data
 
 @mcp.tool(
@@ -101,7 +118,7 @@ async def find_fnguide_data(stock: str):
     """,
     tags={"opendart", "fundamentals", "korea", "standardized", "cached"}
 )
-async def find_opendart_data(stock: str, year: int | None = None):
+async def find_opendart_data(stock: str, year: int | None = None, quarter: int | None = None):
     """
     OpenDART에서 한국 주식 재무제표 3종을 수집합니다.
 
@@ -120,25 +137,26 @@ async def find_opendart_data(stock: str, year: int | None = None):
     """
     logger.info(f">>> 🛠️ Tool: 'find_opendart_data' called for '{stock}'")
 
-    dart_api_key = os.getenv("DART_API_KEY")
-    print(f"DART API Key: {dart_api_key}")
-    if not dart_api_key:
-        raise ValueError("DART_API_KEY environment variable is not set")
+
 
     #crawler = FnGuideCrawler(stock=stock)
     #data = await crawler.fundamentals(use_cache=use_cache)
 
-    if not year:
-        now = datetime.now()
-        year = str(now.year - 1)
+    now = datetime.now()
+    q = (now.month - 1) // 3
+    default_year, default_quarter = (now.year - 1, 4) if q == 0 else (now.year, q)
+    
+    year = year or default_year
+    quarter = quarter or (4 if year < now.year else default_quarter)
 
     crawler = OpenDartCrawler(api_key=dart_api_key)
     corp_data = crawler.corp_data
     crawler.save_corp_data(corpcode_filename)
 
-    api_type = "단일회사 주요계정"
+    #api_type = "단일회사 주요계정"
+    api_type = "단일회사 전체 재무제표"
     corp_code = crawler.fetch_corp_code(stock)
-    data = crawler.finance(corp_code, year, api_type=api_type)
+    data = crawler.finance(corp_code, year, quarter=quarter, api_type=api_type)
 
     return data
 
