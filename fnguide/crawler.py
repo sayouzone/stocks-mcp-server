@@ -71,5 +71,29 @@ class FnGuideCrawler:
     def main(self, stock: str):
         return self._main_parser.parse(stock)
 
+    def company(self, stock: str):
+        return self._company_parser.parse(stock)
+
     def finance(self, stock: str):
         return self._finance_parser.parse(stock)
+
+    def finance_ratio(self, stock: str):
+        return self._finance_ratio_parser.parse(stock)
+
+    def income_statement(self, stock: str):
+        return self._finance_parser.income_statement(stock)
+
+    def quarterly_income_statement(self, stock: str):
+        return self._finance_parser.quarterly_income_statement(stock)
+
+    def balance_sheet(self, stock: str):
+        return self._finance_parser.balance_sheet(stock)
+
+    def quarterly_balance_sheet(self, stock: str):
+        return self._finance_parser.quarterly_balance_sheet(stock)
+
+    def cash_flow(self, stock: str):
+        return self._finance_parser.cash_flow(stock)
+
+    def quarterly_cash_flow(self, stock: str):
+        return self._finance_parser.quarterly_cash_flow(stock)

@@ -212,6 +212,7 @@ gemini
 OpenDart으로 삼성전자 재무제표 보여줘
 OpenDart으로 2024년 삼성전자 재무제표 보여줘
 OpenDart으로 2025년 2분기 삼성전자 재무제표 보여줘
+FnGuide로 삼성전자 재무제표 보여줘
 
 
 ```bash

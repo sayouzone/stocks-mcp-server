@@ -4,7 +4,11 @@ TARGET_PATH=~/Development/sayouzone/sayou-fabric/packages-dev/sayou-stock
 SRC_PATH=$TARGET_PATH/src/sayou/stock
 
 cp ./tests/*.py $TARGET_PATH/tests/
-cp ./tests/corpcode.json $TARGET_PATH/tests/
+
+if [ -f ./tests/corpcode.json ]; then
+    cp ./tests/corpcode.json $TARGET_PATH/tests/
+fi
+
 cp ./tests/.env-samples $TARGET_PATH/tests/
 
 cp -r ./edgar $SRC_PATH/
