@@ -63,6 +63,7 @@ class FnGuideCrawler:
         self._disclosure_parser = FnGuideDisclosureParser(self.client)
         self._finance_ratio_parser = FnGuideFinanceRatioParser(self.client)
         self._finance_parser = FnGuideFinanceParser(self.client)
+        self._invest_parser = FnGuideInvestParser(self.client)
         self._industry_parser = FnGuideIndustryAnalysisParser(self.client)
         self._main_parser = FnGuideMainParser(self.client)
         self._share_analysis_parser = FnGuideShareAnalysisParser(self.client)
@@ -97,3 +98,9 @@ class FnGuideCrawler:
 
     def quarterly_cash_flow(self, stock: str):
         return self._finance_parser.quarterly_cash_flow(stock)
+
+    def invest(self, stock: str):
+        return self._invest_parser.parse(stock)
+
+    def consensus(self, stock: str):
+        return self._consensus_parser.parse(stock)

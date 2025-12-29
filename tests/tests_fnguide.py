@@ -141,6 +141,100 @@ def demo_finance_ratio(crawler: FnGuideCrawler, code: str):
     data = crawler.finance_ratio(code)
     print(data)
 
+def demo_invest(crawler: FnGuideCrawler, code: str):
+    """FnGuide 기업 정보 | 투자지표 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"FnGuide 기업 정보 | 투자지표를 조회 - {code}")
+    print('='*60)
+
+    results = crawler.invest(code)
+    print(results)
+
+    for caption, data in results.items():
+        print(f"\n### {caption} ###")
+        print(f"타입: {type(data).__name__}")
+        
+        if isinstance(data, TableData):
+            print(f"헤더: {data.headers}")
+            print(f"항목 수: {len(data.data) + len(data.data_with_category)}")
+            
+            # 샘플 출력
+            if data.data_with_category:
+                for (cat, item), values in list(data.data_with_category.items())[:3]:
+                    print(f"  [{cat}] {item}: {values}")
+            elif data.data:
+                for key, values in list(data.data.items())[:3]:
+                    print(f"  {key}: {values}")
+        
+        elif isinstance(data, KeyValueData):
+            print(f"항목 수: {len(data.data)}")
+            for key, value in list(data.data.items())[:5]:
+                print(f"  {key}: {value}")
+        
+        elif isinstance(data, HistoryData):
+            print(f"헤더: {data.headers}")
+            print(f"레코드 수: {len(data.records)}")
+            for record in data.records[:2]:
+                print(f"  {record}")
+    
+    # JSON 출력
+    print("\n" + "=" * 70)
+    print("JSON 출력")
+    print("=" * 70)
+    
+    json_output = {
+        caption: data.to_dict()
+        for caption, data in results.items()
+    }
+    print(json.dumps(json_output, ensure_ascii=False, indent=2)[:2000] + "...")
+
+def demo_consensus(crawler: FnGuideCrawler, code: str):
+    """FnGuide 기업 정보 | 컨센서스 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"FnGuide 기업 정보 | 컨센서스를 조회 - {code}")
+    print('='*60)
+
+    results = crawler.consensus(code)
+    print(results)
+
+    for caption, data in results.items():
+        print(f"\n### {caption} ###")
+        print(f"타입: {type(data).__name__}")
+        
+        if isinstance(data, TableData):
+            print(f"헤더: {data.headers}")
+            print(f"항목 수: {len(data.data) + len(data.data_with_category)}")
+            
+            # 샘플 출력
+            if data.data_with_category:
+                for (cat, item), values in list(data.data_with_category.items())[:3]:
+                    print(f"  [{cat}] {item}: {values}")
+            elif data.data:
+                for key, values in list(data.data.items())[:3]:
+                    print(f"  {key}: {values}")
+        
+        elif isinstance(data, KeyValueData):
+            print(f"항목 수: {len(data.data)}")
+            for key, value in list(data.data.items())[:5]:
+                print(f"  {key}: {value}")
+        
+        elif isinstance(data, HistoryData):
+            print(f"헤더: {data.headers}")
+            print(f"레코드 수: {len(data.records)}")
+            for record in data.records[:2]:
+                print(f"  {record}")
+    
+    # JSON 출력
+    print("\n" + "=" * 70)
+    print("JSON 출력")
+    print("=" * 70)
+    
+    json_output = {
+        caption: data.to_dict()
+        for caption, data in results.items()
+    }
+    print(json.dumps(json_output, ensure_ascii=False, indent=2)[:2000] + "...")
+
 def main(stock: str):
     """메인 데모 실행"""
     
@@ -153,7 +247,9 @@ def main(stock: str):
     #demo_main(crawler, stock)
     #demo_company(crawler, stock)
     #demo_finance(crawler, stock)
-    demo_finance_ratio(crawler, stock)
+    #demo_finance_ratio(crawler, stock)
+    #demo_invest(crawler, stock)
+    demo_consensus(crawler, stock)
     
     print("\n" + "="*60)
     print("Demo completed!")
