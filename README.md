@@ -21,7 +21,7 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 
 ## 패키지 구조
 
-- SEC EDGAR
+- SEC EDGAR 
 - FnGuide
 - Naver Finance
 - OpenDart
@@ -91,11 +91,16 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │       ├── registration.py    # 증권신고서 주요정보 API 파서
 │       └── reports.py         # 정기보고서 주요정보 API 파서
 ├── tests/
-│   ├── test_edgar.py          # Edgar 테스트
-│   ├── test_fnguide.py        # FnGuide 테스트
-│   ├── test_naver.py          # Naver 테스트
-│   ├── test_opendart.py       # OpenDART 테스트
-│   └── test_yahoo.py          # Yahoo 테스트
+│   ├── test_edgar.py          # Edgar 테스트 (로컬 소스)
+│   ├── test_edgar_.py         # Edgar 테스트 (sayou-stock)
+│   ├── test_fnguide.py        # FnGuide 테스트 (로컬 소스)
+│   ├── test_fnguide_.py       # FnGuide 테스트 (sayou-stock)
+│   ├── test_naver.py          # Naver 테스트 (로컬 소스)
+│   ├── test_naver_.py         # Naver 테스트 (sayou-stock)
+│   ├── test_opendart.py       # OpenDART 테스트 (로컬 소스)
+│   ├── test_opendart_.py      # OpenDART 테스트 (sayou-stock)
+│   ├── test_yahoo.py          # Yahoo 테스트 (로컬 소스)
+│   └── test_yahoo_.py         # Yahoo 테스트 (sayou-stock)
 ├── yahoo/
 │   ├── __init__.py          # 공개 API 정의
 │   ├── client.py            # OpenDART HTTP 클라이언트
@@ -164,7 +169,7 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
 
 #### 배포
 
-**로컬**
+**패키지 소스로 테스트**
 
 ```bash
 gcloud run deploy $MCP_SERVER_NAME \
@@ -175,7 +180,16 @@ gcloud run deploy $MCP_SERVER_NAME \
     --labels=dev-tutorial=stocks-mcp
 ```
 
-**원격**
+**패키지 소스 및 접근권한 테스트**
+
+```bash
+gcloud run deploy $MCP_SERVER_NAME \
+    --region=us-central1 \
+    --source=. \
+    --labels=dev-tutorial=stocks-mcp
+```
+
+**sayou-stock 설치 및 테스트**
 
 ```bash
 gcloud run deploy $MCP_SERVER_NAME \
@@ -187,14 +201,19 @@ gcloud run deploy $MCP_SERVER_NAME \
     --labels=dev-tutorial=stocks-mcp
 ```
 
+**sayou-stock 설치 및 접근권한 테스트**
+
 ```bash
 gcloud run deploy $MCP_SERVER_NAME \
     --region=us-central1 \
     --source=. \
+    --set-env-vars="ENV_TYPE=pip" \
     --labels=dev-tutorial=stocks-mcp
 ```
 
 ## Tests
+
+#### Gemini 테스트
 
 ```bash
 export PROJECT_NUMBER=$(gcloud projects describe $GOOGLE_CLOUD_PROJECT --format="value(projectNumber)")
@@ -278,10 +297,12 @@ Tips for getting started:
 │ >   Type your message or @path/to/file                                                                                  │
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  ~/.../src/sayou/mcp/stocks_mcp (main*)                                      no sandbox (see /docs)                                       auto
- ```
+```
 
- ```bash
- > /mcp
+## Errors
+
+```bash
+> /mcp
 
 Configured MCP servers:
 
@@ -309,8 +330,6 @@ Configured MCP servers:
 ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
  ~/.../src/sayou/mcp/stocks_mcp (main*)                     no sandbox (see /docs)                                     auto
 ```
-
-## Errors
 
 ```bash
 > 삼성전자

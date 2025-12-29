@@ -1,2 +1,2 @@
 xmltodict
-sayou-stock==0.0.5
+sayou-stock==0.0.6
