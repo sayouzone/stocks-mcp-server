@@ -11,11 +11,20 @@ from pathlib import Path
 #from utils.yahoofinance import Fundamentals as YahooFundamentals
 from utils.gcpmanager import GCSManager
 
-from edgar import EDGARCrawler
-from fnguide import FnGuideCrawler
-from naver import NaverCrawler
-from opendart import OpenDartCrawler
-from yahoo import YahooCrawler
+env_type = os.getenv("ENV_TYPE", "local")
+
+if env_type == "local":
+    from edgar import EDGARCrawler
+    from fnguide import FnGuideCrawler
+    from naver import NaverCrawler
+    from opendart import OpenDartCrawler
+    from yahoo import YahooCrawler
+else:
+    from sayou.stock.edgar import EDGARCrawler
+    from sayou.stock.fnguide import FnGuideCrawler
+    from sayou.stock.naver import NaverCrawler
+    from sayou.stock.opendart import OpenDartCrawler
+    from sayou.stock.yahoo import YahooCrawler
 
 from google.cloud import secretmanager
 

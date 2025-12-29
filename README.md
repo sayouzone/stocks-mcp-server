@@ -164,12 +164,26 @@ gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT \
 
 #### 배포
 
+**로컬**
+
 ```bash
 gcloud run deploy $MCP_SERVER_NAME \
     --service-account=mcp-server-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
     --no-allow-unauthenticated \
     --region=us-central1 \
     --source=. \
+    --labels=dev-tutorial=stocks-mcp
+```
+
+**원격**
+
+```bash
+gcloud run deploy $MCP_SERVER_NAME \
+    --service-account=mcp-server-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com \
+    --no-allow-unauthenticated \
+    --region=us-central1 \
+    --source=. \
+    --set-env-vars="ENV_TYPE=pip" \
     --labels=dev-tutorial=stocks-mcp
 ```
 
@@ -190,12 +204,30 @@ export ID_TOKEN=$(gcloud auth print-identity-token)
 settings.json
 
 ```json
+{
+    "ide": {
+        "hasSeenNudge": true
+    },
+    "mcpServers": {
         "stocks-remote": {
             "httpUrl": "https://stocks-mcp-server-$PROJECT_NUMBER.us-central1.run.app/mcp",
             "headers": {
                 "Authorization": "Bearer $ID_TOKEN"
             }
         },
+        "zoo-remote": {
+            "httpUrl": "https://zoo-mcp-server-$PROJECT_NUMBER.us-central1.run.app/mcp",
+            "headers": {
+                "Authorization": "Bearer $ID_TOKEN"
+            }
+        }
+    },
+    "security": {
+        "auth": {
+            "selectedType": "gemini-api-key"
+        }
+    }
+}
 ```
 
 Copy settings.json file to ~/.gemini/ directory.

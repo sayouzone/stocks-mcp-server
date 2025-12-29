@@ -6,17 +6,11 @@ FnGuide Crawler 사용 예시
 import json
 import os
 import pandas as pd
-import sys
 
-from datetime import datetime
 from dotenv import load_dotenv
-from pathlib import Path
 
-# 상위 디렉토리를 path에 추가
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from fnguide import FnGuideCrawler
-from fnguide.models import TableData, KeyValueData, HistoryData
+from sayou.stock.fnguide import FnGuideCrawler
+from sayou.stock.fnguide.models import TableData, KeyValueData, HistoryData
 
 def demo_main(crawler: FnGuideCrawler, code: str):
     """FnGuide 기업 정보 | Snapshot 조회 데모"""

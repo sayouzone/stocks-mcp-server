@@ -3,13 +3,7 @@
 SEC EDGAR Crawler 사용 예시
 """
 
-import sys
-from pathlib import Path
-
-# 상위 디렉토리를 path에 추가
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from edgar import EDGARCrawler
+from sayou.stock.edgar import EDGARCrawler
 
 def demo_10k(crawler: EDGARCrawler, cik: str, ticker: str):
     """10-K 파일링 데모"""
