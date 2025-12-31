@@ -299,6 +299,14 @@ Tips for getting started:
  ~/.../src/sayou/mcp/stocks_mcp (main*)                                      no sandbox (see /docs)                                       auto
 ```
 
+## Deploy sayou-stock
+
+```bash
+git push origin main
+git tag sayou-stock-v0.1.1
+git push origin sayou-stock-v0.1.1 
+```
+
 ## Errors
 
 ```bash

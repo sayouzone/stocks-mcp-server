@@ -7,7 +7,7 @@ dependencies = [
     "fastmcp==2.12.4",
     "pandas==2.3.3",
     "xmltodict==1.0.2",
-    "sayou-stock==0.1.0",
+    "sayou-stock==0.1.1",
     "yfinance==0.2.66",
     "google-cloud-storage==3.5.0",
     "google-cloud-bigquery==3.38.0",
