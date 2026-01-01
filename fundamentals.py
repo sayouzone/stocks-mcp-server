@@ -167,7 +167,15 @@ async def find_opendart_data(stock: str, year: int | None = None, quarter: int |
     corp_code = crawler.fetch_corp_code(stock)
     data = crawler.finance(corp_code, year, quarter=quarter, api_type=api_type)
 
-    return data
+    if len(data) == 0:
+        quarter = quarter - 1 if quarter == 4 else quarter
+        data = crawler.finance(corp_code, year, quarter=quarter, api_type=api_type)
+
+    outputs = []
+    for item in data:
+        outputs.append(item.to_dict())
+
+    return outputs
 
 
 @mcp.tool(
