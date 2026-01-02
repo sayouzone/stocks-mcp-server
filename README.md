@@ -261,8 +261,12 @@ gemini
 
 - 삼성전자
 - OpenDart으로 삼성전자 재무제표 보여줘
+- OpenDart으로 삼성전자 재무 상태를 보여줘
+- OpenDart으로 삼성전자 재무제표 보여줘
+- OpenDart으로 삼성전자 배당 정보를 보여줘
+- OpenDart으로 삼성전자 배당에 대해 알려줘
 - OpenDart으로 2024년 삼성전자 재무제표 보여줘
-- OpenDart으로 2025년 2분기 삼성전자 재무제표 보여줘
+- OpenDart으로 2025년 3분기 삼성전자 재무제표 보여줘
 - FnGuide로 삼성전자 재무제표 보여줘
 
 
