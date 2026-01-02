@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import datetime
 from fastmcp import FastMCP
 from pathlib import Path
+from typing import Optional
 
 #from utils.crawler.fnguide import FnGuideCrawler
 #from utils.yahoofinance import Fundamentals as YahooFundamentals
@@ -127,7 +128,7 @@ async def find_fnguide_data(stock: str):
     """,
     tags={"opendart", "fundamentals", "korea", "standardized", "cached"}
 )
-async def find_opendart_data(stock: str, year: int | None = None, quarter: int | None = None):
+async def find_opendart_data(stock: str, year: Optional[int] = None, quarter: Optional[int] = None):
     """
     OpenDART에서 한국 주식 재무제표 3종을 수집합니다.
 
@@ -146,10 +147,7 @@ async def find_opendart_data(stock: str, year: int | None = None, quarter: int |
     """
     logger.info(f">>> 🛠️ Tool: 'find_opendart_data' called for '{stock}'")
 
-
-
-    #crawler = FnGuideCrawler(stock=stock)
-    #data = await crawler.fundamentals(use_cache=use_cache)
+    is_date = year is not None and quarter is not None
 
     now = datetime.now()
     q = (now.month - 1) // 3
@@ -165,11 +163,16 @@ async def find_opendart_data(stock: str, year: int | None = None, quarter: int |
     #api_type = "단일회사 주요계정"
     api_type = "단일회사 전체 재무제표"
     corp_code = crawler.fetch_corp_code(stock)
-    data = crawler.finance(corp_code, year, quarter=quarter, api_type=api_type)
 
-    if len(data) == 0:
-        quarter = quarter - 1 if quarter == 4 else quarter
+    count = 1
+    while True:
+        logger.info(f"fetching finance data: {year}Q{quarter}")
         data = crawler.finance(corp_code, year, quarter=quarter, api_type=api_type)
+        if is_date or len(data) > 0 or count > 4:
+            break
+        quarter = quarter - 1 if quarter > 1 else 4
+        year = year - 1 if quarter == 4 else year
+        count += 1
 
     outputs = []
     for item in data:
