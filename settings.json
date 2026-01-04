@@ -3,14 +3,14 @@
         "hasSeenNudge": true
     },
     "mcpServers": {
-        "stocks-remote": {
-            "httpUrl": "https://stocks-mcp-server-$PROJECT_NUMBER.us-central1.run.app/mcp",
+        "opendart-remote": {
+            "httpUrl": "https://opendart-mcp-server-$PROJECT_NUMBER.us-central1.run.app/mcp",
             "headers": {
                 "Authorization": "Bearer $ID_TOKEN"
             }
         },
-        "zoo-remote": {
-            "httpUrl": "https://zoo-mcp-server-$PROJECT_NUMBER.us-central1.run.app/mcp",
+        "stocks-remote": {
+            "httpUrl": "https://stocks-mcp-server-$PROJECT_NUMBER.us-central1.run.app/mcp",
             "headers": {
                 "Authorization": "Bearer $ID_TOKEN"
             }

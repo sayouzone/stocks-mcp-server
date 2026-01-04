@@ -2,7 +2,7 @@
 
 Stocks Crawling and Caching MCP Server<br/>
 
-주식 정보를 FnGuide, OpenDart, Naver Finance, Yahoo Finance, SEC/EDGAR 등에서 <br/>
+주식 정보를 `FnGuide`, `OpenDart`, `Naver Finance`, `Yahoo Finance`, `SEC/EDGAR` 등에서 <br/>
 종목 기본 정보 (펀더멘탈, fundamental)를 가져온다.
 
 모델 컨텍스트 프로토콜 (Model Context Protocol, MCP) 서버를 빌도하고 배포<br/>
@@ -265,6 +265,7 @@ gemini
 - OpenDart으로 삼성전자 재무제표 보여줘
 - OpenDart으로 삼성전자 배당 정보를 보여줘
 - OpenDart으로 삼성전자 배당에 대해 알려줘
+- OpenDart으로 삼성전자가 지급하는 보상에 대해 알려줘
 - OpenDart으로 2024년 삼성전자 재무제표 보여줘
 - OpenDart으로 2025년 3분기 삼성전자 재무제표 보여줘
 - FnGuide로 삼성전자 재무제표 보여줘
