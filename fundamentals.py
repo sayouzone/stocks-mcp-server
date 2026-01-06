@@ -148,13 +148,7 @@ async def find_opendart_finance(stock: str, year: Optional[int] = None, quarter:
     logger.info(f">>> 🛠️ Tool: 'find_opendart_data' called for '{stock}'")
 
     is_date = year is not None and quarter is not None
-
-    now = datetime.now()
-    q = (now.month - 1) // 3
-    default_year, default_quarter = (now.year - 1, 4) if q == 0 else (now.year, q)
-    
-    year = year or default_year
-    quarter = quarter or (4 if year < now.year else default_quarter)
+    year, quarter = _year_quarter(year, quarter)
 
     crawler = OpenDartCrawler(api_key=dart_api_key)
     corp_data = crawler.corp_data
@@ -220,13 +214,7 @@ async def find_opendart_dividend(stock: str, year: Optional[int] = None, quarter
     logger.info(f">>> 🛠️ Tool: 'find_opendart_dividend' called for '{stock}'")
 
     is_date = year is not None and quarter is not None
-
-    now = datetime.now()
-    q = (now.month - 1) // 3
-    default_year, default_quarter = (now.year - 1, 4) if q == 0 else (now.year, q)
-    
-    year = year or default_year
-    quarter = quarter or (4 if year < now.year else default_quarter)
+    year, quarter = _year_quarter(year, quarter)
 
     crawler = OpenDartCrawler(api_key=dart_api_key)
     corp_data = crawler.corp_data
@@ -290,13 +278,7 @@ async def find_opendart_compensation(stock: str, year: Optional[int] = None, qua
     logger.info(f">>> 🛠️ Tool: 'find_opendart_compensation' called for '{stock}'")
 
     is_date = year is not None and quarter is not None
-
-    now = datetime.now()
-    q = (now.month - 1) // 3
-    default_year, default_quarter = (now.year - 1, 4) if q == 0 else (now.year, q)
-    
-    year = year or default_year
-    quarter = quarter or (4 if year < now.year else default_quarter)
+    year, quarter = _year_quarter(year, quarter)
 
     crawler = OpenDartCrawler(api_key=dart_api_key)
     corp_data = crawler.corp_data
@@ -406,14 +388,6 @@ def find_yahoofinance_data(query: str, attribute: str):
         "cash_flow": _to_json(cash_flow)
     }
 
-def _to_json(data):
-    if isinstance(data, pd.DataFrame):
-        return json.loads(data.to_json(orient="records", date_format="iso"))
-    if isinstance(data, pd.Series):
-        return data.to_dict()
-    if isinstance(data, dict):
-        return data
-
 @mcp.tool(
     name="get_yahoofinance_fundamentals",
     description="""Yahoo Finance에서 해외 주식 재무제표 수집 (GCS 캐싱 지원).
@@ -513,3 +487,22 @@ def find(animal: str) -> str:
         f"Example: Penguins can be found in The Arctic Exhibit on the Polar Path."
     )
 """
+
+def _year_quarter(year, quarter):
+    """Year and Quarter """
+    now = datetime.now()
+    q = (now.month - 1) // 3
+    default_year, default_quarter = (now.year - 1, 4) if q == 0 else (now.year, q)
+    
+    year = year or default_year
+    quarter = quarter or (4 if year < now.year else default_quarter)
+
+    return year, quarter
+
+def _to_json(data):
+    if isinstance(data, pd.DataFrame):
+        return json.loads(data.to_json(orient="records", date_format="iso"))
+    if isinstance(data, pd.Series):
+        return data.to_dict()
+    if isinstance(data, dict):
+        return data

@@ -527,24 +527,23 @@ class OpenDartCrawler:
         """
         return self._disclosure_parser.company(code)
         
-    def finance(self, code: str, year: str, quarter: int = 4, api_type: str = "단일회사 전체 재무제표", indicator_code: str="M210000"):
-        """
-        OpenDart 정기보고서 재무정보
-        단일회사 주요계정
-        다중회사 주요계정
-        단일회사 전체 재무제표
-        XBRL택사노미재무제표양식
-        단일회사 주요 재무지표
-        다중회사 주요 재무지표
-        """
+    def finance(
+        self,
+        code: str,
+        year: str,
+        quarter: int = 4,
+        api_type: str = "단일회사 전체 재무제표",
+        indicator_code: IndexClassCode = IndexClassCode.PROFITABILITY
+    ):
+        """OpenDart 정기보고서 재무정보"""
         api_no = FinanceStatus.SINGLE_COMPANY_FINANCIAL_STATEMENT
         return self._finance_parser.finance(code, year, quarter, api_no=api_no, indicator_code=indicator_code)
 
-    def finance_file(self, rcept_no, quarter: int = 4, save_path: str | None = None):
+    def finance_file(self, rcept_no, report_code: str = None, quarter: int = 4, save_path: str | None = None):
         """
         OpenDart 정기보고서 재무정보 - 재무제표 원본파일(XBRL)
         """
-        return self._finance_parser.finance_file(rcept_no, quarter, save_path=save_path)
+        return self._finance_parser.finance_file(rcept_no, report_code, quarter, save_path=save_path)
 
     def single_company_main_accounts(self, corp_code: str, year: str, quarter: int):
         """OpenDart 정기보고서 재무정보 - 단일회사 주요계정"""
@@ -556,27 +555,61 @@ class OpenDartCrawler:
         api_no = FinanceStatus.MULTI_COMPANY_MAIN_ACCOUNTS
         return self._finance_parser.finance(corp_code, year, quarter, api_no=api_no)
 
-    def single_company_financial_statement(self, corp_code: str, year: str, quarter: int):
+    def financial_statements(self, corp_code: str, year: str, quarter: int, financial_statement="OFS"):
         """OpenDart 정기보고서 재무정보 - 단일회사 전체 재무제표"""
         api_no = FinanceStatus.SINGLE_COMPANY_FINANCIAL_STATEMENT
-        return self._finance_parser.finance(corp_code, year, quarter, api_no=api_no, financial_statement="OFS")
+        return self._finance_parser.finance(corp_code, year, quarter, api_no=api_no, financial_statement=financial_statement)
 
-    def xbrl_taxonomy_financial_statement(self, corp_code: str, year: str, quarter: int):
+    def xbrl_taxonomy_financial_statements(self, corp_code: str, year: str, quarter: int):
         """OpenDart 정기보고서 재무정보 - XBRL택사노미재무제표양식"""
         api_no = FinanceStatus.XBRL_TAXONOMY_FINANCIAL_STATEMENT
         return self._finance_parser.finance(corp_code, year, quarter, api_no=api_no, financial_statement_type="BS1")
 
-    def single_company_financial_indicator(self, corp_code: str, year: str, quarter: int, indicator_code: str = IndexClassCode.PROFITABILITY):
+    def single_company_key_financial_indicators(
+        self,
+        corp_code: str,
+        year: str,
+        quarter: int,
+        indicator_code: IndexClassCode = IndexClassCode.PROFITABILITY
+    ):
         """OpenDart 정기보고서 재무정보 - 단일회사 주요 재무지표"""
-        api_no = FinanceStatus.SINGLE_COMPANY_FINANCIAL_INDICATOR
-        #indicator_code = IndexClassCode.PROFITABILITY.value
+        api_no = FinanceStatus.SINGLE_COMPANY_KEY_FINANCIAL_INDICATOR
         return self._finance_parser.finance(corp_code, year, quarter, api_no=api_no, indicator_code=indicator_code)
 
-    def multi_company_financial_indicator(self, corp_code: str, year: str, quarter: int, indicator_code: str = IndexClassCode.PROFITABILITY):
+    def multi_company_key_financial_indicators(
+        self,
+        corp_code: str,
+        year: str,
+        quarter: int,
+        indicator_code: IndexClassCode = IndexClassCode.PROFITABILITY
+    ):
         """OpenDart 정기보고서 재무정보 - 다중회사 주요 재무지표"""
-        api_no = FinanceStatus.MULTI_COMPANY_FINANCIAL_INDICATOR
-        #indicator_code = IndexClassCode.PROFITABILITY.value
+        api_no = FinanceStatus.MULTI_COMPANY_KEY_FINANCIAL_INDICATOR
         return self._finance_parser.finance(corp_code, year, quarter, api_no=api_no, indicator_code=indicator_code)
+
+    def balance_sheet(self, corp_code: str, year: str, quarter: int):
+        """OpenDart 정기보고서 재무정보 - 재무상태표"""
+        return self._finance_parser.balance_sheet(corp_code, year, quarter)
+
+    def quarterly_balance_sheet(self, corp_code: str, year: str, quarter: int):
+        """OpenDart 정기보고서 재무정보 - 재무상태표"""
+        return self._finance_parser.quarterly_balance_sheet(corp_code, year, quarter)
+
+    def income_statement(self, corp_code: str, year: str, quarter: int):
+        """OpenDart 정기보고서 재무정보 - 손익계산서"""
+        return self._finance_parser.income_statement(corp_code, year, quarter)
+
+    def quarterly_income_statement(self, corp_code: str, year: str, quarter: int):
+        """OpenDart 정기보고서 재무정보 - 손익계산서"""
+        return self._finance_parser.quarterly_income_statement(corp_code, year, quarter)
+
+    def cash_flow(self, corp_code: str, year: str, quarter: int):
+        """OpenDart 정기보고서 재무정보 - 현금흐름표"""
+        return self._finance_parser.cash_flow(corp_code, year, quarter)
+
+    def quarterly_cash_flow(self, corp_code: str, year: str, quarter: int):
+        """OpenDart 정기보고서 재무정보 - 현금흐름표"""
+        return self._finance_parser.quarterly_cash_flow(corp_code, year, quarter)
 
     def _fetch_list(
         self,
