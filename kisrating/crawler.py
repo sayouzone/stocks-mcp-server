@@ -39,4 +39,4 @@ class KisratingCrawler:
         return self._statistics_parser.fetch(start_date)
 
     def statistics_excel(self, start_date: str = None):
-        return self._statistics_parser.fetch_excel(start_date)
+        return self._statistics_parser.fetch_and_save_excel(start_date)

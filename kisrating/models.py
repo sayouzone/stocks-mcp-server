@@ -16,7 +16,7 @@ import pandas as pd
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from enum import Enum
+from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Tuple
 
 """
@@ -25,10 +25,27 @@ Kisrating Data Models
 
 class FileType(Enum):
     """파일 유형 열거형"""
-    EXCEL = "excel"
-    ZIP = "zip"
-    CSV = "csv"
-    UNKNOWN = "unknown"
+    EXCEL = auto()
+    ZIP = auto()
+    CSV = auto()
+    UNKNOWN = auto()
+
+    @classmethod
+    def from_filename(cls, filename: str) -> "FileType":
+        """파일명으로부터 파일 유형을 감지합니다."""
+        lower_name = filename.lower()
+        
+        extension_map = {
+            (".xlsx", ".xls"): cls.EXCEL,
+            (".zip",): cls.ZIP,
+            (".csv",): cls.CSV,
+        }
+        
+        for extensions, file_type in extension_map.items():
+            if lower_name.endswith(extensions):
+                return file_type
+        
+        return cls.UNKNOWN
 
 @dataclass
 class Statistics:
@@ -79,4 +96,4 @@ class DownloadFile:
         return self.file_type == FileType.EXCEL
 
     def is_zip(self) -> bool:
-        return self.file_type == FileType.ZIP
+        return self.file_type == FileType.ZIP햣

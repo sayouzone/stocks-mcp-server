@@ -62,6 +62,20 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │       ├── invest.py             # FnGuide 투자지표 파서
 │       ├── main.py               # FnGuide 메인(Snapshot) 파서
 │       └── share_analysis.py     # FnGuide 지분분석 파서
+├── kisrating/
+│   ├── __init__.py          # 공개 API 정의
+│   ├── client.py            # OpenDART HTTP 클라이언트
+│   ├── models.py            # 데이터 클래스 (DTO)
+│   ├── utils.py             # 유틸리티 함수 & 상수
+│   ├── crawler.py           # 통합 인터페이스 (Facade)
+│   ├── examples.py          # 사용 예시
+│   └── parsers/
+│   │   ├── __init__.py
+│   │   ├── statistics.py    # KisRating 통계 파서
+│   │   └── html_extractor.py # KisRating HTML 추출 파서
+│   └── utils/
+│       ├── storage.py       # KisRating 데이터 저장
+│       └── utils.py         # KisRating 유틸리티 함수
 ├── naver/
 │   ├── __init__.py          # 공개 API 정의
 │   ├── client.py            # OpenDART HTTP 클라이언트

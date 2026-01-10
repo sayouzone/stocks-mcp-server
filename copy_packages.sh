@@ -40,3 +40,9 @@ cp -r ./fnguide $SRC_PATH/
 rm -rf $SRC_PATH/fnguide/__pycache__/
 rm -rf $SRC_PATH/fnguide/parsers/__pycache__/
 rm -rf $SRC_PATH/fnguide/examples.py
+
+# Kisrating 소스 복사
+cp -r ./kisrating $SRC_PATH/
+rm -rf $SRC_PATH/kisrating/__pycache__/
+rm -rf $SRC_PATH/kisrating/parsers/__pycache__/
+rm -rf $SRC_PATH/kisrating/examples.py
