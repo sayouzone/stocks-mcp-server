@@ -5,6 +5,8 @@ __pycache__/
 
 examples/.ipynb_checkpoints/
 
+tests/*_ifrs/
+tests/statistics/
 .DS_Store
 
 # C extensions
