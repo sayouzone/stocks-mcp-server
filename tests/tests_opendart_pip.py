@@ -494,7 +494,7 @@ def main(code: str):
     # 각 파일링 타입 데모
     #demo_corp_code(crawler, code)
     #demo_base_documents(crawler, code)
-    demo_finance(crawler, corp_code)
+    #demo_finance(crawler, corp_code)
     demo_finance1(crawler, corp_code)
     #demo_reports(crawler, corp_code)
     #demo_ownership(crawler, corp_code)

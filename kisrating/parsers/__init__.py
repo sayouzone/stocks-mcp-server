@@ -13,13 +13,11 @@
 # limitations under the License.
 
 """
-Naver 파서 모듈
+Kisrating 파서 모듈
 """
 
-from .news import NaverNewsParser
-from .market import NaverMarketParser
+from .statistics import StatisticsParser
 
 __all__ = [
-    "NaverNewsParser",
-    "NaverMarketParser",
+    "StatisticsParser",
 ]
