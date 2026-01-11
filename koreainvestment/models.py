@@ -81,7 +81,7 @@ class AccessToken:
             access_token=response_data.get("access_token", ""),
             token_type=response_data.get("token_type", "Bearer"),
             expires_in=response_data.get("expires_in", 86400),
-            expired_at=response_data.get("access_token_expired"),
+            expired_at=response_data.get("access_token_token_expired"),
         )
 
     def to_bytes(self) -> bytes:

@@ -24,7 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 class TokenManager:
-    """액세스 토큰 관리 클래스"""
+    """
+    액세스 토큰 관리 클래스
+    https://apiportal.koreainvestment.com/apiservice-apiservice?/oauth2/tokenP
+    """
 
     OAUTH_URL = KIS_OPENAPI_PROD + "/oauth2/tokenP"
 
