@@ -14,29 +14,29 @@
 
 import logging
 
-from .client import KisratingClient
+from .client import KoreainvestmentClient
 
 from .parsers import (
-    StatisticsParser,
+    DomesticParser,
 )
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class KisratingCrawler:
+class KoreainvestmentCrawler:
         
-    """한국신용평가 > 신용등급 > 등급통계 > 등급별금리스프레드"""
+    """Koreainvestment Crawler"""
     
-    def __init__(self):
-        """크롤러를 초기화합니다."""
-        self.client = KisratingClient()
+    def __init__(self, app_key: str = None, app_secret: str = None):
+        """Initialize Koreainvestment Crawler"""
+        self.client = KoreainvestmentClient(app_key, app_secret)
 
-        # 파서 초기화
-        self._statistics_parser = StatisticsParser(self.client)
+        # Parser initialization
+        self._domestic_parser = DomesticParser(self.client)
 
-    def statistics(self, start_date: str = None):
-        return self._statistics_parser.fetch(start_date)
+    def domestic(self, start_date: str = None):
+        return self._domestic_parser.fetch(start_date)
 
-    def statistics_excel(self, start_date: str = None):
-        return self._statistics_parser.fetch_and_save_excel(start_date)
+    def inquire_balance(self):
+        return self._domestic_parser.inquire_balance()
