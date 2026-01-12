@@ -124,3 +124,30 @@ class RequestHeader:
                 key = k.replace('_', '-') if k == 'content_type' else k
                 result[key] = v
         return result
+
+@dataclass
+class ResponseBody:
+    """응답 body."""
+    
+    rt_cd: str
+    msg_cd: str
+    msg1: str
+
+    FIELD_NAMES_KO = {
+        "rt_cd": "성공 실패 여부",
+        "msg_cd": "응답코드",
+        "msg1": "응답메세지",
+    }
+
+    def to_korean(self) -> dict:
+        """필드명을 한글로 변환한 딕셔너리 반환."""
+        result = {}
+        for k, v in self.__dict__.items():
+            if v is None:
+                continue
+            key = self.FIELD_NAMES_KO.get(k, k)
+            if isinstance(v, Decimal):
+                result[key] = f"{v:,.2f}"
+            else:
+                result[key] = v
+        return result

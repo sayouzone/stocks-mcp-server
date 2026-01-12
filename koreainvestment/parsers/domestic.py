@@ -23,6 +23,8 @@ from ..models import (
     DomesticStockBalance,
     DomesticAccountSummary,
     DomesticBalanceResponse,
+    SearchInfoResponse,
+    SearchStockInfoResponse,
 )
 from ..utils.token_manager import TokenManager
 from ..utils.utils import (
@@ -99,7 +101,7 @@ class DomesticParser:
         if response.status_code != 200:
             self._handle_error(response)
 
-        return response.json()
+        return SearchInfoResponse.from_response(response.json())
 
     def search_stock_info(self, stock_code: str, stock_type: str = "300") -> dict:
         """
@@ -119,7 +121,7 @@ class DomesticParser:
         if response.status_code != 200:
             self._handle_error(response)
 
-        return response.json()
+        return SearchStockInfoResponse.from_response(response.json())
 
     def _build_headers(self, tr_id: str, **kwargs) -> RequestHeader:
         """공통 헤더 생성"""

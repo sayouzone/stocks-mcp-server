@@ -29,8 +29,6 @@ from ..models.base_model import (
 )
 from ..models.overseas import (
     OverseasBalanceQueryParam,
-    OverseasStockBalance,
-    OverseasBalanceSummary,
     OverseasBalanceResponse,
 )
 from .html_extractor import HtmlTableExtractor
@@ -98,7 +96,7 @@ class OverseasParser:
         if response.status_code != 200:
             self._handle_error(response)
 
-        return OverseasBalanceResponse.from_dict(response.json())
+        return OverseasBalanceResponse.from_response(response.json())
 
     def _build_headers(self, tr_id: str, **kwargs) -> RequestHeader:
         """공통 헤더 생성"""

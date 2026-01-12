@@ -21,6 +21,8 @@ from decimal import Decimal
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Tuple
 
+from .base_model import ResponseBody
+
 """
 Koreainvestment (KIS) 예탁원정보 Data Models
 """
@@ -96,9 +98,7 @@ class DividendInfo:
 class DividendResponse:
     """배당금 조회 API 응답."""
     
-    rt_cd: str   # 응답코드 (0: 성공)
-    msg_cd: str  # 메시지코드
-    msg1: str    # 응답메시지
+    response_body: ResponseBody
     dividends: list[DividendInfo]  # 배당금 목록
 
     @property
@@ -110,8 +110,10 @@ class DividendResponse:
     def from_response(cls, data: dict) -> "DividendResponse":
         """딕셔너리에서 DividendResponse 객체 생성."""
         return cls(
-            rt_cd=data["rt_cd"],
-            msg_cd=data["msg_cd"],
-            msg1=data["msg1"].strip(),
+            response_body=ResponseBody(
+                rt_cd=data["rt_cd"],
+                msg_cd=data["msg_cd"],
+                msg1=data["msg1"].strip()
+            ),
             dividends=[DividendInfo.from_dict(item) for item in data.get("output1", [])],
         )

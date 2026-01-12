@@ -26,6 +26,8 @@ from .domestic import (
     DomesticStockBalance,
     DomesticAccountSummary,
     DomesticBalanceResponse,
+    SearchInfoResponse,
+    SearchStockInfoResponse,
 )
 from .domestic_finance import (
     BalanceSheetResponse,
@@ -56,6 +58,8 @@ __all__ = [
     "DomesticStockBalance",
     "DomesticAccountSummary",
     "DomesticBalanceResponse",
+    "SearchInfoResponse",
+    "SearchStockInfoResponse",
     # 국내 재무
     "BalanceSheetResponse",
     "IncomeStatementResponse",

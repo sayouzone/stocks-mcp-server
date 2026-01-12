@@ -4,17 +4,9 @@ Koreainvestment Crawler 사용 예시
 """
 
 import os
-import pandas as pd
-import sys
-
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from pathlib import Path
 
-# 상위 디렉토리를 path에 추가
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from koreainvestment import KoreainvestmentCrawler
+from sayou.stock.koreainvestment import KoreainvestmentCrawler
 
 def demo_domestic(crawler: KoreainvestmentCrawler):
     """한국투자증권 국내 조회 데모"""
@@ -127,9 +119,9 @@ def main():
     crawler = KoreainvestmentCrawler(app_key, app_secret)
 
     # 각 파일링 타입 데모
-    #demo_domestic(crawler)
-    #demo_domestic_finance(crawler)
-    #demo_domestic_ksdinfo(crawler)
+    demo_domestic(crawler)
+    demo_domestic_finance(crawler)
+    demo_domestic_ksdinfo(crawler)
     demo_overseas(crawler)
     
     print("\n" + "="*60)

@@ -21,6 +21,8 @@ from decimal import Decimal
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Tuple
 
+from .base_model import ResponseBody
+
 """
 Koreainvestment (KIS) Data Models
 """
@@ -186,14 +188,36 @@ class OverseasBalanceSummary:
 
 
 @dataclass
+class BalanceResponseBody(ResponseBody):
+    ctx_area_fk200: str  # 연속조회검색조건200
+    ctx_area_nk200: str  # 연속조회키200
+
+    FIELD_NAMES_KO = {
+        "rt_cd": "성공 실패 여부",
+        "msg_cd": "응답코드",
+        "msg1": "응답메세지",
+        "ctx_area_fk200": "연속조회검색조건200",
+        "ctx_area_nk200": "연속조회키200",
+    }
+
+    def to_korean(self) -> dict:
+        """필드명을 한글로 변환한 딕셔너리 반환."""
+        result = {}
+        for k, v in self.__dict__.items():
+            if v is None:
+                continue
+            key = self.FIELD_NAMES_KO.get(k, k)
+            if isinstance(v, Decimal):
+                result[key] = f"{v:,.2f}"
+            else:
+                result[key] = v
+        return result
+
+@dataclass
 class OverseasBalanceResponse:
     """해외주식 잔고 조회 API 응답."""
     
-    rt_cd: str           # 응답코드 (0: 성공)
-    msg_cd: str          # 메시지코드
-    msg1: str            # 응답메시지
-    ctx_area_fk200: str  # 연속조회검색조건200
-    ctx_area_nk200: str  # 연속조회키200
+    response_body: BalanceResponseBody
     balances: list[OverseasStockBalance] # 개별 종목 잔고 목록
     summary: OverseasBalanceSummary      # 잔고 요약
 
@@ -203,14 +227,16 @@ class OverseasBalanceResponse:
         return self.rt_cd == "0"
 
     @classmethod
-    def from_dict(cls, data: dict) -> "OverseasBalanceResponse":
+    def from_response(cls, data: dict) -> "OverseasBalanceResponse":
         """딕셔너리에서 OverseasBalanceResponse 객체 생성."""
         return cls(
-            rt_cd=data["rt_cd"],
-            msg_cd=data["msg_cd"],
-            msg1=data["msg1"].strip(),
-            ctx_area_fk200=data.get("ctx_area_fk200", "").strip(),
-            ctx_area_nk200=data.get("ctx_area_nk200", "").strip(),
+            response_body=BalanceResponseBody(
+                rt_cd=data["rt_cd"],
+                msg_cd=data["msg_cd"],
+                msg1=data["msg1"].strip(),
+                ctx_area_fk200=data.get("ctx_area_fk200", "").strip(),
+                ctx_area_nk200=data.get("ctx_area_nk200", "").strip()
+            ),
             balances=[OverseasStockBalance.from_dict(item) for item in data.get("output1", [])],
             summary=OverseasBalanceSummary.from_dict(data["output2"]),
         )

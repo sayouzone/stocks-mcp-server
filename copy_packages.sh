@@ -46,3 +46,9 @@ cp -r ./kisrating $SRC_PATH/
 rm -rf $SRC_PATH/kisrating/__pycache__/
 rm -rf $SRC_PATH/kisrating/parsers/__pycache__/
 rm -rf $SRC_PATH/kisrating/examples.py
+
+# Koreainvestment 소스 복사
+cp -r ./koreainvestment $SRC_PATH/
+rm -rf $SRC_PATH/koreainvestment/__pycache__/
+rm -rf $SRC_PATH/koreainvestment/parsers/__pycache__/
+rm -rf $SRC_PATH/koreainvestment/examples.py

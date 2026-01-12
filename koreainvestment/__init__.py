@@ -75,6 +75,8 @@ from .models.domestic import (
     DomesticStockBalance,
     DomesticAccountSummary,
     DomesticBalanceResponse,
+    SearchInfoResponse,
+    SearchStockInfoResponse,
 )
 from .models.domestic_finance import (
     BalanceSheetResponse,
@@ -111,6 +113,8 @@ __all__ = [
     "OverseasBalanceQueryParam",
     "DomesticStockBalance",
     "DomesticAccountSummary",
+    "SearchInfoResponse",
+    "SearchStockInfoResponse",
     "BalanceSheetResponse",
     "IncomeStatementResponse",
     "FinancialRatioResponse",
