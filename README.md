@@ -76,6 +76,29 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │   └── utils/
 │       ├── storage.py       # KisRating 데이터 저장
 │       └── utils.py         # KisRating 유틸리티 함수
+├── koreainvestment/
+│   ├── __init__.py          # 공개 API 정의
+│   ├── client.py            # OpenDART HTTP 클라이언트
+│   └── models/              # 데이터 클래스 (DTO)
+│   │   ├── __init__.py
+│   │   ├── base_model.py    # KisRating 통계 파서
+│   │   ├── domestic.py      # 국내주식
+│   │   ├── domestic_finance.py      # 국내주식 재무정보
+│   │   ├── domestic_ksdinfo.py      # 국내주식 기업정보
+│   │   ├── overseas.py      # 해외주식
+│   │   └── overseas_finance.py      # 해외주식 재무정보
+│   ├── crawler.py           # 통합 인터페이스 (Facade)
+│   ├── examples.py          # 사용 예시
+│   └── parsers/
+│   │   ├── __init__.py
+│   │   ├── domestic.py      # 국내주식
+│   │   ├── domestic_finance.py      # 국내주식 재무정보
+│   │   ├── domestic_ksdinfo.py      # 국내주식 기업정보
+│   │   ├── overseas.py      # 해외주식
+│   │   └── overseas_finance.py      # 해외주식 재무정보
+│   └── utils/
+│       ├── storage.py       # KisRating 데이터 저장
+│       └── utils.py         # KisRating 유틸리티 함수
 ├── naver/
 │   ├── __init__.py          # 공개 API 정의
 │   ├── client.py            # OpenDART HTTP 클라이언트
