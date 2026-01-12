@@ -38,9 +38,64 @@ def demo_domestic(crawler: KoreainvestmentCrawler):
     data = crawler.search_stock_info("005930")
     print(data)
 
+def demo_domestic_finance(crawler: KoreainvestmentCrawler):
+    """한국투자증권 국내 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"한국투자증권 국내 조회")
+    print('='*60)
+
     print(f"\n국내주식 대차대조표[v1_국내주식-078]")
     data = crawler.balance_sheet("005930")
+    print(data.response_body.to_korean())
+    print(data.balance_sheet.to_korean())
+
+    print(f"\n국내주식 손익계산서[v1_국내주식-079]")
+    data = crawler.income_statement("005930")
+    print(data.response_body.to_korean())
+    for statement in data.statements:
+        print(statement.to_korean())
+
+    print(f"\n국내주식 재무비율[v1_국내주식-080]")
+    data = crawler.financial_ratio("005930")
+    print(data.response_body.to_korean())
+    for ratio in data.ratios:
+        print(ratio.to_korean())
+
+    print(f"\n국내주식 수익성비율[v1_국내주식-081]")
+    data = crawler.profit_ratio("005930")
+    print(data.response_body.to_korean())
+    for ratio in data.ratios:
+        print(ratio.to_korean())
+
+    print(f"\n국내주식 기타주요비율[v1_국내주식-082]")
+    data = crawler.other_major_ratios("005930")
+    print(data.response_body.to_korean())
+    for ratio in data.ratios:
+        print(ratio.to_korean())
+
+    print(f"\n국내주식 안정성비율[v1_국내주식-083]")
+    data = crawler.stability_ratio("005930")
+    print(data.response_body.to_korean())
+    for ratio in data.ratios:
+        print(ratio.to_korean())
+
+    print(f"\n국내주식 성장성비율[v1_국내주식-085]")
+    data = crawler.growth_ratio("005930")
+    print(data.response_body.to_korean())
+    for ratio in data.ratios:
+        print(ratio.to_korean())
+
+def demo_domestic_ksdinfo(crawler: KoreainvestmentCrawler):
+    """한국투자증권 국내 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"한국투자증권 국내 조회")
+    print('='*60)
+
+    print(f"\n예탁원정보(배당일정)[국내주식-145]")
+    data = crawler.dividend("005930")
     print(data)
+    for dividend in data.dividends:
+        print(dividend.to_korean())
 
 def demo_overseas(crawler: KoreainvestmentCrawler):
     """한국투자증권 해외 조회 데모"""
@@ -68,8 +123,10 @@ def main():
     crawler = KoreainvestmentCrawler(app_key, app_secret)
 
     # 각 파일링 타입 데모
-    demo_domestic(crawler)
-    demo_overseas(crawler)
+    #demo_domestic(crawler)
+    demo_domestic_finance(crawler)
+    #demo_domestic_ksdinfo(crawler)
+    #demo_overseas(crawler)
     
     print("\n" + "="*60)
     print("Demo completed!")

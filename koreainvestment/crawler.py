@@ -18,6 +18,8 @@ from .client import KoreainvestmentClient
 
 from .parsers import (
     DomesticParser,
+    DomesticFinanceParser,
+    DomesticKsdinfoParser,
     OverseasParser,
 )
 
@@ -35,6 +37,8 @@ class KoreainvestmentCrawler:
 
         # Parser initialization
         self._domestic_parser = DomesticParser(self.client)
+        self._domestic_finance_parser = DomesticFinanceParser(self.client)
+        self._domestic_ksdinfo_parser = DomesticKsdinfoParser(self.client)
         self._overseas_parser = OverseasParser(self.client)
 
     def domestic(self, start_date: str = None):
@@ -43,14 +47,35 @@ class KoreainvestmentCrawler:
     def inquire_balance(self):
         return self._domestic_parser.inquire_balance()
 
-    def search_info(self, product_code: str, product_type: str = "300"):
-        return self._domestic_parser.search_info(product_code, product_type)
+    def search_info(self, stock_code: str, stock_type: str = "300"):
+        return self._domestic_parser.search_info(stock_code, stock_type)
 
-    def search_stock_info(self, product_code: str, product_type: str = "300"):
-        return self._domestic_parser.search_stock_info(product_code, product_type)
+    def search_stock_info(self, stock_code: str, stock_type: str = "300"):
+        return self._domestic_parser.search_stock_info(stock_code, stock_type)
 
-    def balance_sheet(self, product_code: str):
-        return self._domestic_parser.balance_sheet(product_code)
+    def balance_sheet(self, stock_code: str):
+        return self._domestic_finance_parser.balance_sheet(stock_code)
+
+    def income_statement(self, stock_code: str):
+        return self._domestic_finance_parser.income_statement(stock_code)
+
+    def financial_ratio(self, stock_code: str):
+        return self._domestic_finance_parser.financial_ratio(stock_code)
+
+    def profit_ratio(self, stock_code: str):
+        return self._domestic_finance_parser.profit_ratio(stock_code)
+
+    def other_major_ratios(self, stock_code: str):
+        return self._domestic_finance_parser.other_major_ratios(stock_code)
+
+    def stability_ratio(self, stock_code: str):
+        return self._domestic_finance_parser.stability_ratio(stock_code)
+
+    def growth_ratio(self, stock_code: str):
+        return self._domestic_finance_parser.growth_ratio(stock_code)
+
+    def dividend(self, stock_code: str):
+        return self._domestic_ksdinfo_parser.dividend(stock_code)
 
     def overseas_inquire_balance(self):
         return self._overseas_parser.inquire_balance()

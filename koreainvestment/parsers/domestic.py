@@ -13,33 +13,20 @@
 # limitations under the License.
 
 import logging
-import os
-import pandas as pd
-import requests
-
-from datetime import datetime
-from io import StringIO
-from lxml import html
 from typing import Optional
 
 from ..client import KoreainvestmentClient
-from ..models.base_model import (
+from ..models import (
     AccountConfig,
     RequestHeader,
-)
-from ..models.domestic import (
     BalanceQueryParam,
     DomesticStockBalance,
     DomesticAccountSummary,
     DomesticBalanceResponse,
 )
-from .html_extractor import HtmlTableExtractor
 from ..utils.token_manager import TokenManager
-from ..utils.storage import FileStorage
 from ..utils.utils import (
     KIS_OPENAPI_PROD,
-    KIS_OPENAPI_OPS,
-    get_filename,
 )
 
 # 로깅 설정
@@ -49,12 +36,9 @@ logger = logging.getLogger(__name__)
 class DomesticParser:
     """KIS 국내 데이터를 파싱하는 클래스"""
 
-    DEFAULT_LOCAL_PATH = './config'
-
     def __init__(
         self,
         client: KoreainvestmentClient,
-        local_path: Optional[str] = None,
     ):
         self._client = client
 
@@ -63,13 +47,10 @@ class DomesticParser:
             product_code="01",
         )
         self._token_manager = TokenManager(client)
-        self._extractor = HtmlTableExtractor()
-        self._storage = FileStorage(local_path or self.DEFAULT_LOCAL_PATH)
-    
+
     def inquire_balance(self) -> dict:
         """
         주식잔고조회
-
         https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-balance
         """
         url = KIS_OPENAPI_PROD + "/uapi/domestic-stock/v1/trading/inquire-balance"
@@ -89,10 +70,6 @@ class DomesticParser:
             OFL_YN="",
         )
 
-        logger.debug(f"Request URL: {url}")
-        logger.debug(f"Request Headers: {headers.to_dict()}")
-        logger.debug(f"Request Params: {params.to_dict()}")
-
         response = self._client._get(
             url,
             params=params.to_dict(),
@@ -103,85 +80,41 @@ class DomesticParser:
             self._handle_error(response)
 
         return DomesticBalanceResponse.from_response(response.json())
-    
-    def search_info(self, product_code: str, product_type: str = "300") -> dict:
+
+    def search_info(self, stock_code: str, stock_type: str = "300") -> dict:
         """
         상품기본조회[v1_국내주식-029]
-
         https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/search-info
         """
         url = KIS_OPENAPI_PROD + "/uapi/domestic-stock/v1/quotations/search-info"
 
         headers = self._build_headers(tr_id="CTPF1604R")
         params = {
-            "PDNO": product_code,
-            "PRDT_TYPE_CD": product_type,
+            "PDNO": stock_code,
+            "PRDT_TYPE_CD": stock_type,
         }
 
-        logger.debug(f"Request URL: {url}")
-        logger.debug(f"Request Headers: {headers.to_dict()}")
-        logger.debug(f"Request Params: {params}")
-
-        response = self._client._get(
-            url,
-            params=params,
-            headers=headers.to_dict(),
-        )
+        response = self._client._get(url, params=params, headers=headers.to_dict())
 
         if response.status_code != 200:
             self._handle_error(response)
 
         return response.json()
-    
-    def search_stock_info(self, product_code: str, product_type: str = "300") -> dict:
+
+    def search_stock_info(self, stock_code: str, stock_type: str = "300") -> dict:
         """
         주식기본조회[v1_국내주식-067]
-
         https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/search-stock-info
         """
         url = KIS_OPENAPI_PROD + "/uapi/domestic-stock/v1/quotations/search-stock-info"
 
         headers = self._build_headers(tr_id="CTPF1002R")
         params = {
-            "PDNO": product_code,
-            "PRDT_TYPE_CD": product_type,
+            "PDNO": stock_code,
+            "PRDT_TYPE_CD": stock_type,
         }
 
-        logger.debug(f"Request URL: {url}")
-        logger.debug(f"Request Headers: {headers.to_dict()}")
-        logger.debug(f"Request Params: {params}")
-
-        response = self._client._get(
-            url,
-            params=params,
-            headers=headers.to_dict(),
-        )
-
-        if response.status_code != 200:
-            self._handle_error(response)
-
-        return response.json()
-    
-    def balance_sheet(self, product_code: str, product_type: str = "300") -> dict:
-        """
-        국내주식 대차대조표[v1_국내주식-078]
-
-        https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/finance/balance-sheet
-        """
-        url = KIS_OPENAPI_PROD + "/uapi/domestic-stock/v1/finance/balance-sheet"
-
-        headers = self._build_headers(tr_id="CTPF1002R")
-        params = {
-            "FID_DIV_CLS_CODE": "0",
-            "PDNO": product_code,
-            "PRDT_TYPE_CD": product_type,
-        }
-
-        response = self._client._get(
-            url,
-            params=params,
-            headers=headers.to_dict(),
-        )
+        response = self._client._get(url, params=params, headers=headers.to_dict())
 
         if response.status_code != 200:
             self._handle_error(response)
