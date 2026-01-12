@@ -23,10 +23,15 @@ from lxml import html
 from typing import Optional
 
 from ..client import KoreainvestmentClient
-from ..models import (
+from ..models.base_model import (
     AccountConfig,
     RequestHeader,
+)
+from ..models.domestic import (
     BalanceQueryParam,
+    DomesticStockBalance,
+    DomesticAccountSummary,
+    DomesticBalanceResponse,
 )
 from .html_extractor import HtmlTableExtractor
 from ..utils.token_manager import TokenManager
@@ -91,6 +96,90 @@ class DomesticParser:
         response = self._client._get(
             url,
             params=params.to_dict(),
+            headers=headers.to_dict(),
+        )
+
+        if response.status_code != 200:
+            self._handle_error(response)
+
+        return DomesticBalanceResponse.from_response(response.json())
+    
+    def search_info(self, product_code: str, product_type: str = "300") -> dict:
+        """
+        상품기본조회[v1_국내주식-029]
+
+        https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/search-info
+        """
+        url = KIS_OPENAPI_PROD + "/uapi/domestic-stock/v1/quotations/search-info"
+
+        headers = self._build_headers(tr_id="CTPF1604R")
+        params = {
+            "PDNO": product_code,
+            "PRDT_TYPE_CD": product_type,
+        }
+
+        logger.debug(f"Request URL: {url}")
+        logger.debug(f"Request Headers: {headers.to_dict()}")
+        logger.debug(f"Request Params: {params}")
+
+        response = self._client._get(
+            url,
+            params=params,
+            headers=headers.to_dict(),
+        )
+
+        if response.status_code != 200:
+            self._handle_error(response)
+
+        return response.json()
+    
+    def search_stock_info(self, product_code: str, product_type: str = "300") -> dict:
+        """
+        주식기본조회[v1_국내주식-067]
+
+        https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/search-stock-info
+        """
+        url = KIS_OPENAPI_PROD + "/uapi/domestic-stock/v1/quotations/search-stock-info"
+
+        headers = self._build_headers(tr_id="CTPF1002R")
+        params = {
+            "PDNO": product_code,
+            "PRDT_TYPE_CD": product_type,
+        }
+
+        logger.debug(f"Request URL: {url}")
+        logger.debug(f"Request Headers: {headers.to_dict()}")
+        logger.debug(f"Request Params: {params}")
+
+        response = self._client._get(
+            url,
+            params=params,
+            headers=headers.to_dict(),
+        )
+
+        if response.status_code != 200:
+            self._handle_error(response)
+
+        return response.json()
+    
+    def balance_sheet(self, product_code: str, product_type: str = "300") -> dict:
+        """
+        국내주식 대차대조표[v1_국내주식-078]
+
+        https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/finance/balance-sheet
+        """
+        url = KIS_OPENAPI_PROD + "/uapi/domestic-stock/v1/finance/balance-sheet"
+
+        headers = self._build_headers(tr_id="CTPF1002R")
+        params = {
+            "FID_DIV_CLS_CODE": "0",
+            "PDNO": product_code,
+            "PRDT_TYPE_CD": product_type,
+        }
+
+        response = self._client._get(
+            url,
+            params=params,
             headers=headers.to_dict(),
         )
 

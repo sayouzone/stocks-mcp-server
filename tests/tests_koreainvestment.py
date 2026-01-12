@@ -22,11 +22,39 @@ def demo_domestic(crawler: KoreainvestmentCrawler):
     print(f"한국투자증권 국내 조회")
     print('='*60)
 
-    # 한국신용평가 등급통계 조회
-    print(f"\n한국신용평가 등급통계 조회")
+    # 국내주식 잔고 조회
+    print(f"\n국내주식 잔고 조회")
 
     data = crawler.inquire_balance()
+    print(data.summary.to_korean())
+    for balance in data.balances:
+        print(balance.to_korean())
+
+    print(f"\n상품기본조회[v1_국내주식-029]")
+    data = crawler.search_info("005930")
     print(data)
+
+    print(f"\n주식기본조회[v1_국내주식-067]")
+    data = crawler.search_stock_info("005930")
+    print(data)
+
+    print(f"\n국내주식 대차대조표[v1_국내주식-078]")
+    data = crawler.balance_sheet("005930")
+    print(data)
+
+def demo_overseas(crawler: KoreainvestmentCrawler):
+    """한국투자증권 해외 조회 데모"""
+    print(f"\n{'='*60}")
+    print(f"한국투자증권 해외 조회")
+    print('='*60)
+
+    # 해외주식 잔고 조회
+    print(f"\n해외주식 잔고 조회")
+
+    data = crawler.overseas_inquire_balance()
+    print(data.summary.to_korean())
+    for balance in data.balances:
+        print(balance.to_korean())
 
 def main():
     """메인 데모 실행"""
@@ -41,6 +69,7 @@ def main():
 
     # 각 파일링 타입 데모
     demo_domestic(crawler)
+    demo_overseas(crawler)
     
     print("\n" + "="*60)
     print("Demo completed!")

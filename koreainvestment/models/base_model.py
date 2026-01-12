@@ -17,6 +17,7 @@ import pandas as pd
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum, auto
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -90,7 +91,6 @@ class AccessToken:
     @classmethod
     def from_bytes(cls, token_bytes: bytes) -> "AccessToken":
         token_dict = json.loads(token_bytes.decode("utf-8"))
-        print(token_dict)
         return cls.from_response(token_dict)
 
     def to_dict(self) -> dict:
@@ -124,21 +124,3 @@ class RequestHeader:
                 key = k.replace('_', '-') if k == 'content_type' else k
                 result[key] = v
         return result
-
-@dataclass
-class BalanceQueryParam:
-    CANO: str               # 종합계좌번호
-    ACNT_PRDT_CD: str       # 계좌상품코드
-    AFHR_FLPR_YN: str       # 시간외단일가, 거래소여부
-    INQR_DVSN: str          # 조회구분
-    UNPR_DVSN: str          # 단가구분
-    FUND_STTL_ICLD_YN: str  # 펀드결제분포함여부
-    FNCG_AMT_AUTO_RDPT_YN: str    # 융자금액자동상환여부
-    PRCS_DVSN: str          # 처리구분
-
-    OFL_YN: Optional[str] = None            # 오프라인여부
-    CTX_AREA_FK100: Optional[str] = None    # 연속조회검색조건100
-    CTX_AREA_NK100: Optional[str] = None    # 연속조회키100
-
-    def to_dict(self) -> dict:
-        return {k: v for k, v in self.__dict__.items() if v is not None}

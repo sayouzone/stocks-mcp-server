@@ -81,7 +81,7 @@ class FileStorage:
 
         dt = datetime.today().strftime("%Y%m%d")
         file_path = target_dir / f"KIS{dt}"
-        print("file_path", file_path)
+        #print("file_path", file_path)
 
         with open(file_path, "wb") as f:
             f.write(token.to_bytes())
@@ -101,14 +101,14 @@ class FileStorage:
         """
         base_dir = os.path.dirname(os.path.abspath(__file__))
         target_dir = os.path.join(base_dir, subdir)
-        print(target_dir)
+        #print(target_dir)
 
         directory = Path(target_dir)
         files = directory.glob("KIS*")
         files = [f for f in files if f.is_file()]
         if len(files) == 0:
             return None
-        print(files)
+        #print(files)
         latest_file = max(files, key=lambda f: f.name)
 
         return str(latest_file)
@@ -118,6 +118,6 @@ class FileStorage:
         if latest_file is None:
             return None
         
-        print("latest_file", latest_file)
+        #print("latest_file", latest_file)
         with open(latest_file, "rb") as f:
             return AccessToken.from_bytes(f.read())

@@ -17,7 +17,9 @@ Kisrating 파서 모듈
 """
 
 from .domestic import DomesticParser
+from .overseas import OverseasParser
 
 __all__ = [
     "DomesticParser",
+    "OverseasParser",
 ]

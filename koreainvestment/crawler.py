@@ -18,6 +18,7 @@ from .client import KoreainvestmentClient
 
 from .parsers import (
     DomesticParser,
+    OverseasParser,
 )
 
 # 로깅 설정
@@ -34,9 +35,22 @@ class KoreainvestmentCrawler:
 
         # Parser initialization
         self._domestic_parser = DomesticParser(self.client)
+        self._overseas_parser = OverseasParser(self.client)
 
     def domestic(self, start_date: str = None):
         return self._domestic_parser.fetch(start_date)
 
     def inquire_balance(self):
         return self._domestic_parser.inquire_balance()
+
+    def search_info(self, product_code: str, product_type: str = "300"):
+        return self._domestic_parser.search_info(product_code, product_type)
+
+    def search_stock_info(self, product_code: str, product_type: str = "300"):
+        return self._domestic_parser.search_stock_info(product_code, product_type)
+
+    def balance_sheet(self, product_code: str):
+        return self._domestic_parser.balance_sheet(product_code)
+
+    def overseas_inquire_balance(self):
+        return self._overseas_parser.inquire_balance()

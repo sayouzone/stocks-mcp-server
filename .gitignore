@@ -7,7 +7,7 @@ examples/.ipynb_checkpoints/
 
 tests/*_ifrs/
 tests/statistics/
-utils/config/
+koreainvestment/utils/config/
 .DS_Store
 
 # C extensions

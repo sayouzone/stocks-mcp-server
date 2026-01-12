@@ -51,7 +51,6 @@ class TokenManager:
     def authorization(self) -> str:
         """Authorization 헤더 값 반환"""
         auth = self.token.authorization
-        print("auth", auth)
         return auth
 
     def _refresh_token(self) -> None:
