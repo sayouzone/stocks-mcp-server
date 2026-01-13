@@ -79,11 +79,33 @@ class KoreainvestmentCrawler:
     def dividend(self, stock_code: str):
         return self._domestic_ksdinfo_parser.dividend(stock_code)
 
-    def overseas_inquire_balance(self):
+    def inquire_balance_overseas(self):
         return self._overseas_parser.inquire_balance()
 
-    def overseas_buy_stock(self, stock_code: str, order_quantity: int, order_price: float, exchange_type: str = "NASD"):
+    def buy_stock_overseas(self, stock_code: str, order_quantity: int, order_price: float, exchange_type: str):
         return self._overseas_trading_parser.buy_stock(stock_code, order_quantity, order_price, exchange_type)
 
-    def overseas_sell_stock(self, stock_code: str, order_quantity: int, order_price: float, exchange_type: str = "NASD"):
+    def sell_stock_overseas(self, stock_code: str, order_quantity: int, order_price: float, exchange_type: str):
         return self._overseas_trading_parser.sell_stock(stock_code, order_quantity, order_price, exchange_type)
+
+    def revise_stock_overseas(
+        self,
+        stock_code: str,
+        order_quantity: int,
+        order_price: float,
+        order_no: str,
+        exchange_type: str,
+    ):    
+        """해외주식 정정주문"""
+        return self._overseas_trading_parser.order_rvsecncl(stock_code, order_quantity, order_price, order_no, order_type="01", exchange_type=exchange_type)
+
+    def cancel_stock_overseas(
+        self,
+        stock_code: str,
+        order_quantity: int,
+        order_price: float,
+        order_no: str,
+        exchange_type: str,
+    ):
+        """해외주식 취소주문"""
+        return self._overseas_trading_parser.order_rvsecncl(stock_code, order_quantity, order_price, order_no, order_type="02", exchange_type=exchange_type)

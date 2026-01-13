@@ -109,7 +109,7 @@ def demo_overseas(crawler: KoreainvestmentCrawler):
     # 해외주식 잔고 조회
     print(f"\n해외주식 잔고 조회")
 
-    data = crawler.overseas_inquire_balance()
+    data = crawler.inquire_balance_overseas()
     print(data.response_body.to_korean())
     print(data.summary.to_korean())
     for balance in data.balances:
@@ -128,7 +128,7 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
     # 해외주식 매수 주문
     print(f"\n해외주식 매수 주문")
     for info in buy_data:
-        data = crawler.overseas_buy_stock(info[0], info[1], info[2], info[3])
+        data = crawler.buy_stock_overseas(info[0], info[1], info[2], info[3])
         print(data.response_body.to_korean())
         print(data.trading.to_korean())
     
@@ -147,7 +147,7 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
     # 해외주식 매도 주문
     print(f"\n해외주식 매도 주문")
     for info in sell_data:
-        data = crawler.overseas_sell_stock(info[0], info[1], info[2], info[3])
+        data = crawler.sell_stock_overseas(info[0], info[1], info[2], info[3])
         print(data)
 
 def main():

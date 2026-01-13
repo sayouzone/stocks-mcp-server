@@ -92,8 +92,10 @@ from .models import (
     OverseasStockBalance,
     OverseasBalanceSummary,
     OverseasBalanceResponse,
-    OverseasTradingParam,
-    OverseasTradingResponse,
+
+    OverseasOrderParam,
+    OverseasRevisionCancelParam,
+    OverseasOrderResponse,
 )
 from .parsers import (
     DomesticParser,
@@ -129,8 +131,9 @@ __all__ = [
     "OverseasStockBalance",
     "OverseasBalanceSummary",
     "OverseasBalanceResponse",
-    "OverseasTradingParam",
-    "OverseasTradingResponse",
+    "OverseasOrderParam",
+    "OverseasRevisionCancelParam",
+    "OverseasOrderResponse",
     
     # 파서
     "DomesticParser",
