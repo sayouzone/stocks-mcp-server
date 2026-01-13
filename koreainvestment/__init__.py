@@ -93,6 +93,8 @@ from .models import (
     OverseasBalanceSummary,
     OverseasBalanceResponse,
 
+    ExchangeCode,
+    OverseasTrId,
     OverseasOrderParam,
     OverseasRevisionCancelParam,
     OverseasOrderResponse,
@@ -131,6 +133,8 @@ __all__ = [
     "OverseasStockBalance",
     "OverseasBalanceSummary",
     "OverseasBalanceResponse",
+    "ExchangeCode",
+    "OverseasTrId",
     "OverseasOrderParam",
     "OverseasRevisionCancelParam",
     "OverseasOrderResponse",

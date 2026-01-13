@@ -206,11 +206,18 @@ class OverseasTradingParser:
         https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/overseas-stock/v1/trading/order-rvsecncl
         """
         headers = self._build_headers(tr_id=OverseasTrId.REVISION_CANCEL.value)
-        logger.debug(f"Revision/Cancel Request - URL: {self.REVISION_CANCEL_URL}")
-        logger.debug(f"Request Headers: {headers.to_dict()}")
-        logger.debug(f"Request Params: {params.to_dict()}")
+        print(f"Revision/Cancel Request - URL: {self.REVISION_CANCEL_URL}")
+        print(f"Request Headers: {headers.to_dict()}")
+        print(f"Request Params: {params.to_dict()}")
 
+        """
         response = self._client._post(
+            self.REVISION_CANCEL_URL,
+            json=params.to_dict(),
+            headers=headers.to_dict(),
+        )
+        """
+        response = requests.post(
             self.REVISION_CANCEL_URL,
             json=params.to_dict(),
             headers=headers.to_dict(),

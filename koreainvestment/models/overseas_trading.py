@@ -188,6 +188,29 @@ class OverseasOrderOutput:
     ODNO: str                    # 주문번호
     ORD_TMD: str                 # 주문시각
 
+    FIELD_NAMES_KO = {
+        "KRX_FWDG_ORD_ORGNO": "한국거래소전송주문조직번호",
+        "ODNO": "주문번호",
+        "ORD_TMD": "주문시각",
+    }
+
+    def to_korean(self) -> dict:
+        """필드명을 한글로 변환한 딕셔너리 반환."""
+        def format_value(v):
+            if isinstance(v, Decimal):
+                # 불필요한 소수점 이하 0 제거 후 천단위 구분자 적용
+                normalized = v.normalize()
+                if normalized == normalized.to_integral_value():
+                    return f"{int(normalized):,}"
+                return f"{normalized:,f}"
+            return v
+        
+        return {
+            self.FIELD_NAMES_KO.get(k, k): format_value(v)
+            for k, v in self.__dict__.items()
+            if v is not None
+        }
+
     @classmethod
     def from_dict(cls, data: dict) -> "OverseasOrderOutput":
         return cls(
@@ -223,5 +246,5 @@ class OverseasOrderResponse:
                 msg_cd=data["msg_cd"],
                 msg1=data["msg1"].strip()
             ),
-            output=output,
+            order=output,
         )

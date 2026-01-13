@@ -49,6 +49,8 @@ from .overseas import (
     OverseasBalanceResponse,
 )
 from .overseas_trading import (
+    ExchangeCode,
+    OverseasTrId,
     OverseasOrderParam,
     OverseasRevisionCancelParam,
     OverseasOrderResponse,
@@ -82,6 +84,8 @@ __all__ = [
     "OverseasBalanceSummary",
     "OverseasBalanceResponse",
     # 해외 주식 주문
+    "ExchangeCode",
+    "OverseasTrId",
     "OverseasOrderParam",
     "OverseasRevisionCancelParam",
     "OverseasOrderResponse",

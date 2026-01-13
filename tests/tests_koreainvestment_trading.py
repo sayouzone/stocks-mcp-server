@@ -41,7 +41,7 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
     print(f"\n{'='*60}")
     print(f"한국투자증권 해외 거래")
     print('='*60)
-    
+
     buy_data = [
         ("DOW", 10, 24.0, "NYSE"),
         ("IONQ", 5, 40.0, "NYSE"), # 취소주문
@@ -64,6 +64,7 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
     # 해외주식 매수 주문
     print("\n해외주식 매수 주문")
     for info in buy_data:
+        print(info)
         data = crawler.buy_stock_overseas(info[0], info[1], info[2], info[3])
         print(data.response_body.to_korean())
         print(data.order.to_korean())
@@ -73,6 +74,7 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
     # 해외주식 매도 주문
     print("\n해외주식 매도 주문")
     for info in sell_data:
+        print(info)
         data = crawler.sell_stock_overseas(info[0], info[1], info[2], info[3])
         print(data.response_body.to_korean())
         print(data.order.to_korean())
@@ -83,18 +85,20 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
         ("KO", 10, 72.5, order_no.get("KO"), "NYSE")
     ]
     cancel_data = [
-        ("IONQ", 5, 40.0, order_no.get("IONQ"), "NYSE")
+        ("IONQ", 5, 0, order_no.get("IONQ"), "NYSE")
     ]
 
     # 해외주식 정정주문
     print("\n해외주식 정정주문")
     for info in revise_data:
+        print(info)
         data = crawler.revise_stock_overseas(info[0], info[1], info[2], info[3], info[4])
         print(data)
     
     # 해외주식 취소주문
     print("\n해외주식 취소주문")
     for info in cancel_data:
+        print(info)
         data = crawler.cancel_stock_overseas(info[0], info[1], info[2], info[3], info[4])
         print(data)
 
@@ -111,7 +115,7 @@ def main():
 
     # 각 파일링 타입 데모
     demo_overseas(crawler)
-    #demo_overseas_trading(crawler)
+    demo_overseas_trading(crawler)
     
     print("\n" + "="*60)
     print("Demo completed!")
