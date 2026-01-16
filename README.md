@@ -24,6 +24,8 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 - SEC EDGAR 
 - FnGuide
 - Naver Finance
+- Kisrating
+- Korea Investment Securities
 - OpenDart
 - Yahoo Finance
 
@@ -34,7 +36,6 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │   ├── models.py            # 데이터 클래스 (DTO)
 │   ├── utils.py             # 유틸리티 함수 & 상수
 │   ├── crawler.py           # 통합 인터페이스 (Facade)
-│   ├── examples.py          # 사용 예시
 │   └── parsers/
 │       ├── __init__.py
 │       ├── form_10k.py      # 10-K/10-Q 파서
@@ -48,7 +49,6 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │   ├── models.py            # 데이터 클래스 (DTO)
 │   ├── utils.py             # 유틸리티 함수 & 상수
 │   ├── crawler.py           # 통합 인터페이스 (Facade)
-│   ├── examples.py          # 사용 예시
 │   └── parsers/
 │       ├── __init__.py
 │       ├── company.py            # FnGuide 기업개요 파서
@@ -68,7 +68,6 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │   ├── models.py            # 데이터 클래스 (DTO)
 │   ├── utils.py             # 유틸리티 함수 & 상수
 │   ├── crawler.py           # 통합 인터페이스 (Facade)
-│   ├── examples.py          # 사용 예시
 │   └── parsers/
 │   │   ├── __init__.py
 │   │   ├── statistics.py    # KisRating 통계 파서
@@ -78,34 +77,33 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │       └── utils.py         # KisRating 유틸리티 함수
 ├── koreainvestment/
 │   ├── __init__.py          # 공개 API 정의
-│   ├── client.py            # OpenDART HTTP 클라이언트
-│   └── models/              # 데이터 클래스 (DTO)
+│   ├── client.py            # Korea Investment Securities HTTP 클라이언트
+│   ├── models/              # 데이터 클래스 (DTO)
 │   │   ├── __init__.py
-│   │   ├── base_model.py    # KisRating 통계 파서
-│   │   ├── domestic.py      # 국내주식
+│   │   ├── base_model.py            # 베이스 모델
+│   │   ├── domestic.py              # 국내주식
 │   │   ├── domestic_finance.py      # 국내주식 재무정보
 │   │   ├── domestic_ksdinfo.py      # 국내주식 기업정보
-│   │   ├── overseas.py      # 해외주식
-│   │   └── overseas_finance.py      # 해외주식 재무정보
-│   ├── crawler.py           # 통합 인터페이스 (Facade)
-│   ├── examples.py          # 사용 예시
-│   └── parsers/
+│   │   ├── overseas.py              # 해외주식
+│   │   └── overseas_trading.py      # 해외주식 거래정보
+│   ├── crawler.py                   # 통합 인터페이스 (Facade)
+│   ├── parsers/
 │   │   ├── __init__.py
-│   │   ├── domestic.py      # 국내주식
+│   │   ├── domestic.py              # 국내주식
 │   │   ├── domestic_finance.py      # 국내주식 재무정보
 │   │   ├── domestic_ksdinfo.py      # 국내주식 기업정보
-│   │   ├── overseas.py      # 해외주식
-│   │   └── overseas_finance.py      # 해외주식 재무정보
+│   │   ├── overseas.py              # 해외주식
+│   │   └── overseas_trading.py      # 해외주식 거래정보
 │   └── utils/
-│       ├── storage.py       # KisRating 데이터 저장
-│       └── utils.py         # KisRating 유틸리티 함수
+│       ├── storage.py       # 데이터 저장
+│       ├── token_manager.py # 토큰 관리
+│       └── utils.py         # 유틸리티 함수
 ├── naver/
 │   ├── __init__.py          # 공개 API 정의
-│   ├── client.py            # OpenDART HTTP 클라이언트
+│   ├── client.py            # Naver HTTP 클라이언트
 │   ├── models.py            # 데이터 클래스 (DTO)
 │   ├── utils.py             # 유틸리티 함수 & 상수
 │   ├── crawler.py           # 통합 인터페이스 (Facade)
-│   ├── examples.py          # 사용 예시
 │   └── parsers/
 │       ├── __init__.py
 │       ├── news.py          # Naver News 크롤링 파서
@@ -116,7 +114,6 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │   ├── models.py            # 데이터 클래스 (DTO)
 │   ├── utils.py             # 유틸리티 함수 & 상수
 │   ├── crawler.py           # 통합 인터페이스 (Facade)
-│   ├── examples.py          # 사용 예시
 │   └── parsers/
 │       ├── __init__.py
 │       ├── document.py        # 문서 API 파서
@@ -128,23 +125,28 @@ Playwright는 Cloud Run에서 동작할 수 없음으로 Requests 방식을 추�
 │       ├── registration.py    # 증권신고서 주요정보 API 파서
 │       └── reports.py         # 정기보고서 주요정보 API 파서
 ├── tests/
-│   ├── test_edgar.py          # Edgar 테스트 (로컬 소스)
-│   ├── test_edgar_.py         # Edgar 테스트 (sayou-stock)
-│   ├── test_fnguide.py        # FnGuide 테스트 (로컬 소스)
-│   ├── test_fnguide_.py       # FnGuide 테스트 (sayou-stock)
-│   ├── test_naver.py          # Naver 테스트 (로컬 소스)
-│   ├── test_naver_.py         # Naver 테스트 (sayou-stock)
-│   ├── test_opendart.py       # OpenDART 테스트 (로컬 소스)
-│   ├── test_opendart_.py      # OpenDART 테스트 (sayou-stock)
-│   ├── test_yahoo.py          # Yahoo 테스트 (로컬 소스)
-│   └── test_yahoo_.py         # Yahoo 테스트 (sayou-stock)
+│   ├── tests_edgar.py                        # Edgar 테스트 (로컬 소스)
+│   ├── tests_edgar_pip.py                    # Edgar 테스트 (sayou-stock)
+│   ├── tests_fnguide.py                      # FnGuide 테스트 (로컬 소스)
+│   ├── tests_fnguide_pip.py                  # FnGuide 테스트 (sayou-stock)
+│   ├── tests_naver.py                        # Naver 테스트 (로컬 소스)
+│   ├── tests_naver_pip.py                    # Naver 테스트 (sayou-stock)
+│   ├── tests_kisrating.py                    # KisRating 테스트 (로컬 소스)
+│   ├── tests_kisrating_pip.py                # KisRating 테스트 (sayou-stock)
+│   ├── tests_koreainvestment.py              # Koreainvestment 테스트 (로컬 소스)
+│   ├── tests_koreainvestment_pip.py          # Koreainvestment 테스트 (sayou-stock)
+│   ├── tests_koreainvestment_trading.py      # Koreainvestment 주식거래 테스트 (로컬 소스)
+│   ├── tests_koreainvestment_trading_pip.py  # Koreainvestment 주식거래 테스트 (sayou-stock)
+│   ├── tests_opendart.py                     # OpenDART 테스트 (로컬 소스)
+│   ├── tests_opendart_pip.py                 # OpenDART 테스트 (sayou-stock)
+│   ├── tests_yahoo.py                        # Yahoo 테스트 (로컬 소스)
+│   └── tests_yahoo_pip.py                    # Yahoo 테스트 (sayou-stock)
 ├── yahoo/
 │   ├── __init__.py          # 공개 API 정의
 │   ├── client.py            # OpenDART HTTP 클라이언트
 │   ├── models.py            # 데이터 클래스 (DTO)
 │   ├── utils.py             # 유틸리티 함수 & 상수
 │   ├── crawler.py           # 통합 인터페이스 (Facade)
-│   ├── examples.py          # 사용 예시
 │   └── parsers/
 │       ├── __init__.py
 │       ├── analysis.py      # 분석 API 파서
