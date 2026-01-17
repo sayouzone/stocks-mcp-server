@@ -45,8 +45,14 @@ rm -rf $SRC_PATH/kisrating/parsers/__pycache__/
 cp -r ./koreainvestment $SRC_PATH/
 rm -rf $SRC_PATH/koreainvestment/__pycache__/
 rm -rf $SRC_PATH/koreainvestment/parsers/__pycache__/
+rm -rf $SRC_PATH/koreainvestment/utils/__pycache__/
+rm -rf $SRC_PATH/koreainvestment/utils/config/
 
 # Base API Client 소스 복사
 cp -r ./base $SRC_PATH/
 rm -rf $SRC_PATH/base/__pycache__/
 rm -rf $SRC_PATH/base/parsers/__pycache__/
+
+# Ontology 소스 복사
+cp -r ./ontology $SRC_PATH/
+rm -rf $SRC_PATH/ontology/__pycache__/

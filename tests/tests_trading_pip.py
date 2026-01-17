@@ -35,7 +35,7 @@ def demo_overseas(crawler: KoreainvestmentCrawler):
     df_balances.drop(columns=["종합계좌번호", "계좌상품코드", "상품유형코드", "종목명", "대출유형코드"], inplace=True)
     print(df_balances)
 
-def demo_overseas_trading(crawler: KoreainvestmentCrawler):
+def demo_overseas_trading1(crawler: KoreainvestmentCrawler):
     """한국투자증권 해외 거래 데모"""
     print(f"\n{'='*60}")
     print(f"한국투자증권 해외 거래")
@@ -44,7 +44,7 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
     buy_data = [
         #("DOW", 10, 24.0, "NYSE", "Buy"),
         ("DOW", 10, 26.0, "NYSE", "Buy"),
-        ("INUV", 100, 2.8, "AMEX", "Buy")
+        ("INUV", 100, 2.6, "AMEX", "Buy")
     ]
     sell_data = [
         ("SPY", 2, 700.0, "AMEX", "Sell"),
@@ -53,7 +53,7 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
         ("QQQ", 1, 630.0, "NASD", "Sell"),
         ("MVIS", 100, 1.2, "NASD", "Sell"),
         ("IONQ", 5, 60.0, "NYSE", "Sell"),
-        ("INUV", 100, 4.0, "AMEX", "Sell"),
+        ("INUV", 100, 3.5, "AMEX", "Sell"),
         ("ARKG", 10, 35.0, "AMEX", "Sell"),
         ("DOW", 10, 30.0, "NYSE", "Sell"),
         ("NNDM", 100, 2.0, "NASD", "Sell")
@@ -115,7 +115,7 @@ def demo_overseas_trading(crawler: KoreainvestmentCrawler):
         print(data.order.to_korean())
 
 
-def demo_overseas_trading1(crawler: KoreainvestmentCrawler):
+def demo_overseas_trading(crawler: KoreainvestmentCrawler):
     """한국투자증권 해외거래 데모"""
     print(f"\n{'='*60}")
     print(f"한국투자증권 해외거래")
@@ -124,14 +124,14 @@ def demo_overseas_trading1(crawler: KoreainvestmentCrawler):
     trading_data = [
         #("DOW", 10, 24.0, "NYSE", "Buy"),
         ("DOW", 10, 26.0, "NYSE", "Buy"),
-        ("INUV", 100, 2.8, "AMEX", "Buy"),
+        ("INUV", 100, 2.6, "AMEX", "Buy"),
         ("SPY", 2, 700.0, "AMEX", "Sell"),
         #("KO", 10, 72.5, "NYSE", "Sell"),  # 정상 주식을 매도
         ("KO", 10, 73.0, "NYSE", "Sell"),  # 정상 주식을 정정주문
         ("QQQ", 1, 630.0, "NASD", "Sell"),
         ("MVIS", 100, 1.2, "NASD", "Sell"),
         ("IONQ", 5, 60.0, "NYSE", "Sell"),
-        ("INUV", 100, 4.0, "AMEX", "Sell"),
+        ("INUV", 100, 3.5, "AMEX", "Sell"),
         ("ARKG", 10, 35.0, "AMEX", "Sell"),
         ("DOW", 10, 30.0, "NYSE", "Sell"),
         ("NNDM", 100, 2.0, "NASD", "Sell"),

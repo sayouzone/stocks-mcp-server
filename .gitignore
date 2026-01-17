@@ -7,6 +7,9 @@ examples/.ipynb_checkpoints/
 
 tests/*_ifrs/
 tests/statistics/
+tests/lib/
+tests/rsi/
+tests/ontology/
 koreainvestment/utils/config/
 .DS_Store
 
